@@ -310,7 +310,11 @@ class _PathPainter extends CustomPainter {
 
     final pathPainter = Path();
     pathPainter.moveTo(pathPoints.first.dx, pathPoints.first.dy);
-    for (var p in pathPoints.skip(1)) pathPainter.lineTo(p.dx, p.dy);
+
+    for (var p in pathPoints.skip(1))  {
+      pathPainter.lineTo(p.dx, p.dy);
+    }
+    
     canvas.drawPath(pathPainter, paint);
 
     // path nodes removed (no dots inside squares) - path is shown as a solid line only
