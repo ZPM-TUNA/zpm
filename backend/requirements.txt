@@ -16,6 +16,7 @@ inference-sdk==0.9.0
 python-dotenv==1.0.0
 requests==2.31.0
 numpy==2.0.0
+pyserial==3.5  # Arduino/Serial communication
 
 # Audio Processing (Optional)
 # elevenlabs==0.2.26
