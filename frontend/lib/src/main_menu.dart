@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+
 import 'login.dart';
+import 'settings.dart';
+import 'about.dart';
 
 class MainMenu extends StatefulWidget {
   const MainMenu({super.key});
@@ -31,9 +34,38 @@ class _MainMenuState extends State<MainMenu> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const DrawerHeader(
-                decoration: BoxDecoration(color: Colors.red),
-                child: Text('ZeroPanic', style: TextStyle(color: Colors.white, fontSize: 20)),
+              // Centered header without a full-width colored stripe
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 18),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Keep a small colored avatar for branding, but remove the stripe
+                    CircleAvatar(
+                      radius: 26,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      child: Icon(Icons.shield, color: Theme.of(context).colorScheme.onPrimary, size: 28),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'ZeroPanic',
+                      style: TextStyle(
+                        color: Theme.of(context).textTheme.titleLarge?.color ?? Colors.black,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Home',
+                      style: TextStyle(
+                        color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.9) ?? Colors.black54,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               ListTile(
                 leading: const Icon(Icons.dashboard),
@@ -373,20 +405,6 @@ class EvacuationScreen extends StatelessWidget {
   }
 }
 
-class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return const Center(child: Text('Settings — preferences and integrations'));
-  }
-}
 
-class AboutScreen extends StatelessWidget {
-  const AboutScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(child: Text('About ZeroPanic — app version and credits'));
-  }
-}
+// AboutScreen was moved to `about.dart`.
