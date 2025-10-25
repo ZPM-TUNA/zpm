@@ -75,7 +75,21 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 8),
-                const FlutterLogo(size: 72),
+                // Match dashboard/about avatar
+                Builder(builder: (context) {
+                  final theme = Theme.of(context);
+                  return Column(
+                    children: [
+                      CircleAvatar(
+                        radius: 36,
+                        backgroundColor: theme.colorScheme.primary,
+                        child: Icon(Icons.shield, color: theme.colorScheme.onPrimary, size: 36),
+                      ),
+                      const SizedBox(height: 8),
+                      Text('ZeroPanic', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+                    ],
+                  );
+                }),
                 const SizedBox(height: 12),
                 const Text(
                   'ZeroPanic — Find safe exits quickly. Sign in to access maps, robots and evacuation tools.',

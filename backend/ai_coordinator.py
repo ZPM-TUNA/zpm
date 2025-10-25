@@ -25,16 +25,17 @@ class GeminiAIAnalyzer:
     def analyze_evacuation_scenario(
         self,
         maze_state: Dict,
-        robot_assignments: Dict,
+        evacuation_plans: Dict,
         evacuation_status: Dict,
         humans_in_danger: List[str]
     ) -> str:
         """
         Analyze the evacuation scenario and provide guidance
+        Robots explore independently, not assigned to specific humans
         """
         prompt = self._build_analysis_prompt(
             maze_state,
-            robot_assignments,
+            evacuation_plans,
             evacuation_status,
             humans_in_danger
         )
@@ -45,7 +46,7 @@ class GeminiAIAnalyzer:
     def _build_analysis_prompt(
         self,
         maze_state: Dict,
-        robot_assignments: Dict,
+        evacuation_plans: Dict,
         evacuation_status: Dict,
         humans_in_danger: List[str]
     ) -> str:
@@ -56,35 +57,38 @@ class GeminiAIAnalyzer:
 **MAZE STATE:**
 - Grid Size: {maze_state['size']}x{maze_state['size']}
 - Obstacles: {len(maze_state['obstacles'])} static obstacles
-- Blocked Paths: {len(maze_state['blocked_paths'])} dynamically blocked paths
+- Blocked Paths: {len(maze_state['blocked_paths'])} dynamically discovered hazards
 - Available Exits: {maze_state['exits']}
 
-**ROBOTS:**
+**SCOUT ROBOTS (Exploring independently):**
 {json.dumps(maze_state['robots'], indent=2)}
+Robot Status: Scouts are mapping the area and detecting humans/obstacles dynamically
 
 **HUMANS IN DANGER:**
 Total: {len(maze_state['humans'])}
 Positions: {json.dumps(maze_state['humans'], indent=2)}
-Critical: {humans_in_danger}
+Detected: {evacuation_status['detected_humans']} humans
+Critical Priority: {humans_in_danger}
 
-**CURRENT ASSIGNMENTS:**
-{json.dumps(robot_assignments, indent=2)}
+**EVACUATION PLANS:**
+{json.dumps(evacuation_plans, indent=2)}
 
-**EVACUATION STATUS:**
-- Total Robots: {evacuation_status['total_robots']}
+**SYSTEM STATUS:**
+- Total Scout Robots: {evacuation_status['total_robots']}
 - Total Humans: {evacuation_status['total_humans']}
-- Assigned Humans: {evacuation_status['assigned_humans']}
-- Unassigned Humans: {evacuation_status['total_humans'] - evacuation_status['assigned_humans']}
+- Humans with Evacuation Paths: {evacuation_status['humans_with_paths']}
+- Total Hazards: {evacuation_status['total_obstacles']}
+- Robot Explored Areas: {evacuation_status.get('robot_explored_areas', {})}
 
 **YOUR TASK:**
-Provide a clear, calm, and actionable evacuation guidance message that:
-1. Summarizes the current situation
-2. Identifies who is in most danger
-3. Explains the rescue plan for each robot
-4. Provides reassurance and clear next steps
-5. Warns about any blocked paths or hazards
+Provide clear, calm evacuation instructions for the people in the maze that:
+1. Tells each person their evacuation route (position → exit)
+2. Warns about obstacles/hazards to avoid
+3. Identifies which people are in most danger
+4. Provides reassurance that scouts are mapping safe routes
+5. Gives simple directional guidance (north/south/east/west)
 
-Keep the message concise (2-3 sentences), professional, and reassuring. This will be spoken aloud to people in an emergency situation.
+Keep the message concise (2-4 sentences per person), professional, and reassuring. This will be spoken aloud to people in an emergency situation.
 """
         
         return prompt
@@ -123,18 +127,18 @@ Keep it professional and reassuring for emergency broadcast.
     def prioritize_rescues(
         self,
         humans: Dict[str, tuple],
-        robot_assignments: Dict,
+        evacuation_plans: Dict,
         maze_state: Dict
     ) -> List[str]:
-        """Use AI to prioritize which humans are in most danger"""
+        """Use AI to prioritize which humans are in most danger based on evacuation paths"""
         
         prompt = f"""Analyze this evacuation scenario and identify humans in most critical danger.
 
 **HUMANS:**
 {json.dumps(humans, indent=2)}
 
-**ROBOT ASSIGNMENTS:**
-{json.dumps(robot_assignments, indent=2)}
+**EVACUATION PLANS:**
+{json.dumps(evacuation_plans, indent=2)}
 
 **MAZE HAZARDS:**
 - Obstacles: {maze_state['obstacles']}
@@ -142,10 +146,10 @@ Keep it professional and reassuring for emergency broadcast.
 - Exits: {maze_state['exits']}
 
 Based on:
-1. Distance from exits
-2. Proximity to hazards
-3. Whether a robot is assigned
-4. Path complexity
+1. Distance from exits (longer = more danger)
+2. Proximity to hazards/obstacles
+3. Path availability (no path = critical)
+4. Path complexity through dangerous areas
 
 Return ONLY a JSON array of human IDs in priority order (most critical first).
 Example: ["human_2", "human_1", "human_3"]
@@ -260,10 +264,11 @@ class EvacuationAICoordinator:
     def analyze_and_guide(self, generate_voice: bool = True) -> Dict:
         """
         Complete analysis and guidance generation
-        Returns dict with guidance text, voice file, and evacuation plan
+        Calculates evacuation paths for all humans (robots explore independently)
+        Returns dict with guidance text, voice file, and evacuation plans
         """
-        # Get evacuation assignments
-        assignments = self.evacuation_coordinator.assign_rescue_paths()
+        # Calculate evacuation paths for all humans
+        evacuation_plans = self.evacuation_coordinator.calculate_evacuation_paths()
         
         # Get maze state
         maze_state = self.maze.get_state()
@@ -274,14 +279,14 @@ class EvacuationAICoordinator:
         # Prioritize humans in danger
         humans_in_danger = self.ai_analyzer.prioritize_rescues(
             self.maze.humans,
-            assignments,
+            evacuation_plans,
             maze_state
         )
         
         # Generate AI guidance
         guidance_text = self.ai_analyzer.analyze_evacuation_scenario(
             maze_state,
-            assignments,
+            evacuation_plans,
             evacuation_status,
             humans_in_danger
         )
@@ -291,7 +296,7 @@ class EvacuationAICoordinator:
         result = {
             'guidance_text': guidance_text,
             'humans_in_danger': humans_in_danger,
-            'robot_assignments': assignments,
+            'evacuation_plans': evacuation_plans,
             'evacuation_status': evacuation_status,
             'maze_state': maze_state,
             'voice_file': None
@@ -308,35 +313,35 @@ class EvacuationAICoordinator:
     
     def handle_path_blocked(self, robot_id: str, blocked_pos: tuple, generate_voice: bool = True) -> Dict:
         """
-        Handle blocked path scenario
+        Handle blocked path scenario - robot detected obstacle
+        Recalculates evacuation paths for all affected humans
         """
-        # Update maze and recalculate path
-        success = self.evacuation_coordinator.handle_blocked_path(robot_id, blocked_pos)
+        # Robot detected obstacle - recalculate all affected paths
+        result_data = self.evacuation_coordinator.robot_detected_obstacle(robot_id, blocked_pos)
         
-        if not success:
-            return {
-                'success': False,
-                'message': 'Could not find alternative path'
-            }
-        
-        # Get new path
-        new_path = self.evacuation_coordinator.robot_paths.get(robot_id, [])
         maze_state = self.maze.get_state()
+        
+        # Build summary of affected paths
+        affected_summary = []
+        for human_id, changes in result_data['affected_humans'].items():
+            if changes.get('path_changed'):
+                affected_summary.append(f"{human_id}: new path {changes.get('new_distance', 'N/A')} steps")
         
         # Generate AI guidance for blockage
         guidance_text = self.ai_analyzer.analyze_path_blockage(
             robot_id,
             blocked_pos,
-            new_path,
+            affected_summary,
             maze_state
         )
         
         result = {
             'success': True,
             'guidance_text': guidance_text,
-            'new_path': new_path,
             'robot_id': robot_id,
             'blocked_position': blocked_pos,
+            'affected_humans': result_data['affected_humans'],
+            'total_obstacles': result_data['total_obstacles'],
             'voice_file': None
         }
         
@@ -351,6 +356,7 @@ class EvacuationAICoordinator:
     def get_flutter_update(self) -> Dict:
         """
         Get formatted data for Flutter mobile app
+        Robots explore independently, humans have evacuation paths
         """
         evacuation_status = self.evacuation_coordinator.get_evacuation_status()
         maze_state = self.maze.get_state()
@@ -367,8 +373,9 @@ class EvacuationAICoordinator:
                 {
                     'id': robot_id,
                     'position': pos,
-                    'path': evacuation_status['robot_paths'].get(robot_id, {}).get('path', []),
-                    'status': 'active'
+                    'explored_area': self.evacuation_coordinator.robot_explored_areas.get(robot_id, []),
+                    'status': 'exploring',
+                    'cells_explored': len(self.evacuation_coordinator.robot_explored_areas.get(robot_id, []))
                 }
                 for robot_id, pos in maze_state['robots'].items()
             ],
@@ -376,10 +383,10 @@ class EvacuationAICoordinator:
                 {
                     'id': human_id,
                     'position': pos,
-                    'assigned_robot': next(
-                        (rid for hid, rid in self.evacuation_coordinator.human_assignments.items() if hid == human_id),
-                        None
-                    ),
+                    'evacuation_path': self.evacuation_coordinator.human_evacuation_paths.get(human_id, {}).get('path', []),
+                    'exit_target': self.evacuation_coordinator.human_evacuation_paths.get(human_id, {}).get('exit'),
+                    'distance_to_exit': self.evacuation_coordinator.human_evacuation_paths.get(human_id, {}).get('distance'),
+                    'detected': human_id in self.evacuation_coordinator.detected_humans,
                     'status': 'in_danger'
                 }
                 for human_id, pos in maze_state['humans'].items()
@@ -387,13 +394,22 @@ class EvacuationAICoordinator:
             'guidance': {
                 'text': self.current_guidance,
                 'voice_file': self.voice_file
+            },
+            'system_status': {
+                'robots_exploring': len(maze_state['robots']),
+                'humans_detected': len(self.evacuation_coordinator.detected_humans),
+                'total_humans': len(maze_state['humans']),
+                'humans_with_paths': len(self.evacuation_coordinator.human_evacuation_paths)
             }
         }
 
 
 if __name__ == "__main__":
-    # Test the AI coordinator
-    print("Testing AI Evacuation Coordinator...\n")
+    # Test the AI coordinator with dynamic pathfinding
+    print("=" * 60)
+    print("TESTING AI EVACUATION COORDINATOR")
+    print("(Dynamic Pathfinding - Robots Explore Independently)")
+    print("=" * 60)
     
     # Create maze
     maze = MazeGrid(8)
@@ -407,9 +423,9 @@ if __name__ == "__main__":
     maze.add_exit(7, 7)
     maze.add_exit(0, 7)
     
-    # Add robots
-    maze.add_robot("robot_1", 0, 0)
-    maze.add_robot("robot_2", 7, 0)
+    # Add scout robots (they explore independently)
+    maze.add_robot("scout_1", 0, 0)
+    maze.add_robot("scout_2", 7, 0)
     
     # Add humans
     maze.add_human("human_1", 4, 4)
@@ -419,41 +435,61 @@ if __name__ == "__main__":
     # Create AI coordinator
     ai_coordinator = EvacuationAICoordinator(maze)
     
-    # Analyze and generate guidance
-    print("Generating evacuation guidance...\n")
-    result = ai_coordinator.analyze_and_guide(generate_voice=True)
+    # Simulate robot exploration
+    print("\n1. Robots Exploring...")
+    ai_coordinator.evacuation_coordinator.update_robot_exploration("scout_1", (1, 1))
+    ai_coordinator.evacuation_coordinator.update_robot_exploration("scout_1", (2, 1))
+    ai_coordinator.evacuation_coordinator.robot_detected_human("scout_1", "human_1", (4, 4))
+    print("✓ Scout 1 detected human_1")
     
-    print("=" * 60)
+    # Analyze and generate guidance
+    print("\n2. Generating AI Evacuation Guidance...")
+    result = ai_coordinator.analyze_and_guide(generate_voice=False)
+    
+    print("\n" + "=" * 60)
     print("EVACUATION GUIDANCE:")
     print("=" * 60)
     print(result['guidance_text'])
     print("\n" + "=" * 60)
     
     print(f"\nHumans in danger (priority order): {result['humans_in_danger']}")
-    print(f"\nRobot Assignments:")
-    for robot_id, assignment in result['robot_assignments'].items():
-        print(f"  {robot_id} → {assignment['target_human']} (distance: {assignment['total_distance']})")
+    print(f"\nEvacuation Plans:")
+    for human_id, plan in result['evacuation_plans'].items():
+        print(f"  {human_id}: {plan.get('distance_to_exit', 'N/A')} steps to exit {plan.get('exit_position', 'N/A')}")
     
     if result['voice_file']:
         print(f"\n✓ Voice guidance generated: {result['voice_file']}")
     
-    # Test path blockage
+    # Test dynamic obstacle detection
     print("\n\n" + "=" * 60)
-    print("SIMULATING PATH BLOCKAGE...")
+    print("3. SIMULATING DYNAMIC OBSTACLE DETECTION...")
     print("=" * 60)
-    blockage_result = ai_coordinator.handle_path_blocked("robot_1", (1, 1), generate_voice=True)
+    print("Scout 2 detects obstacle at (4, 5)")
+    blockage_result = ai_coordinator.handle_path_blocked("scout_2", (4, 5), generate_voice=False)
     
     if blockage_result['success']:
-        print(f"\nBlockage Update:")
+        print(f"\n✓ Obstacle added at {blockage_result['blocked_position']}")
+        print(f"✓ Total obstacles: {blockage_result['total_obstacles']}")
+        print(f"\nAffected Humans:")
+        for human_id, changes in blockage_result['affected_humans'].items():
+            if changes.get('path_changed'):
+                print(f"  {human_id}: Path recalculated ({changes.get('new_distance', 'N/A')} steps)")
+        
+        print(f"\nAI Update:")
         print(blockage_result['guidance_text'])
-        print(f"\nNew path length: {len(blockage_result['new_path'])}")
-        if blockage_result['voice_file']:
-            print(f"✓ Voice update generated: {blockage_result['voice_file']}")
     
     # Get Flutter update
     print("\n\n" + "=" * 60)
-    print("FLUTTER APP DATA:")
+    print("4. FLUTTER APP DATA:")
     print("=" * 60)
     flutter_data = ai_coordinator.get_flutter_update()
+    print(f"Robots exploring: {flutter_data['system_status']['robots_exploring']}")
+    print(f"Humans detected: {flutter_data['system_status']['humans_detected']}")
+    print(f"Humans with paths: {flutter_data['system_status']['humans_with_paths']}")
+    print(f"\nFull data:")
     print(json.dumps(flutter_data, indent=2))
+    
+    print("\n" + "=" * 60)
+    print("✓ Test Complete!")
+    print("=" * 60)
 
