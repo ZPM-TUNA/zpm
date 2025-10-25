@@ -78,14 +78,13 @@ class MazeGrid:
         return True
     
     def get_neighbors(self, position: Tuple[int, int]) -> List[Tuple[int, int]]:
-        """Get valid neighboring positions (8-directional movement)"""
+        """Get valid neighboring positions (4-directional movement only)"""
         x, y = position
         neighbors = []
         
-        # 8 directions: up, down, left, right, and diagonals
+        # 4 directions only: up, down, left, right (no diagonals)
         directions = [
-            (0, 1), (0, -1), (1, 0), (-1, 0),  # Cardinal
-            (1, 1), (1, -1), (-1, 1), (-1, -1)  # Diagonal
+            (0, 1), (0, -1), (1, 0), (-1, 0)  # Cardinal directions only
         ]
         
         for dx, dy in directions:
@@ -357,6 +356,35 @@ class EvacuationCoordinator:
             'total_obstacles': len(self.maze.obstacles) + len(self.maze.blocked_paths),
             'blocked_paths': list(self.maze.blocked_paths)
         }
+
+
+def astar_path(maze: list[list[int]], start: tuple[int, int], goal: tuple[int, int]) -> list[tuple[int, int]]:
+    """
+    Return the shortest path from start to goal as a list of grid coordinates.
+    Uses the existing AStarPathfinder class.
+    """
+    size = len(maze)
+    
+    # Quick validation
+    if not (0 <= start[0] < size and 0 <= start[1] < size and 
+            0 <= goal[0] < size and 0 <= goal[1] < size):
+        return []
+    
+    if maze[start[1]][start[0]] == 1 or maze[goal[1]][goal[0]] == 1:
+        return []
+    
+    if start == goal:
+        return [start]
+    
+    # Use existing OOP system
+    maze_grid = MazeGrid(size)
+    for y in range(size):
+        for x in range(size):
+            if maze[y][x] == 1:
+                maze_grid.add_obstacle(x, y)
+    
+    pathfinder = AStarPathfinder(maze_grid)
+    return pathfinder.find_path(start, goal) or []
 
 
 if __name__ == "__main__":

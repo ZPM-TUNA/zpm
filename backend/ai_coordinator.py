@@ -10,6 +10,7 @@ import requests
 from dotenv import load_dotenv
 from typing import Dict, List, Optional
 from pathfinding import MazeGrid, EvacuationCoordinator
+from simulation import run_simulation
 
 # Load environment variables
 load_dotenv()
@@ -405,91 +406,95 @@ class EvacuationAICoordinator:
 
 
 if __name__ == "__main__":
-    # Test the AI coordinator with dynamic pathfinding
-    print("=" * 60)
-    print("TESTING AI EVACUATION COORDINATOR")
-    print("(Dynamic Pathfinding - Robots Explore Independently)")
-    print("=" * 60)
-    
-    # Create maze
-    maze = MazeGrid(8)
-    
-    # Add obstacles
-    maze.add_obstacle(2, 2)
-    maze.add_obstacle(2, 3)
-    maze.add_obstacle(5, 5)
-    
-    # Add exits
-    maze.add_exit(7, 7)
-    maze.add_exit(0, 7)
-    
-    # Add scout robots (they explore independently)
-    maze.add_robot("scout_1", 0, 0)
-    maze.add_robot("scout_2", 7, 0)
-    
-    # Add humans
-    maze.add_human("human_1", 4, 4)
-    maze.add_human("human_2", 5, 3)
-    maze.add_human("human_3", 6, 6)
-    
-    # Create AI coordinator
-    ai_coordinator = EvacuationAICoordinator(maze)
-    
-    # Simulate robot exploration
-    print("\n1. Robots Exploring...")
-    ai_coordinator.evacuation_coordinator.update_robot_exploration("scout_1", (1, 1))
-    ai_coordinator.evacuation_coordinator.update_robot_exploration("scout_1", (2, 1))
-    ai_coordinator.evacuation_coordinator.robot_detected_human("scout_1", "human_1", (4, 4))
-    print("✓ Scout 1 detected human_1")
-    
-    # Analyze and generate guidance
-    print("\n2. Generating AI Evacuation Guidance...")
-    result = ai_coordinator.analyze_and_guide(generate_voice=False)
-    
-    print("\n" + "=" * 60)
-    print("EVACUATION GUIDANCE:")
-    print("=" * 60)
-    print(result['guidance_text'])
-    print("\n" + "=" * 60)
-    
-    print(f"\nHumans in danger (priority order): {result['humans_in_danger']}")
-    print(f"\nEvacuation Plans:")
-    for human_id, plan in result['evacuation_plans'].items():
-        print(f"  {human_id}: {plan.get('distance_to_exit', 'N/A')} steps to exit {plan.get('exit_position', 'N/A')}")
-    
-    if result['voice_file']:
-        print(f"\n✓ Voice guidance generated: {result['voice_file']}")
-    
-    # Test dynamic obstacle detection
-    print("\n\n" + "=" * 60)
-    print("3. SIMULATING DYNAMIC OBSTACLE DETECTION...")
-    print("=" * 60)
-    print("Scout 2 detects obstacle at (4, 5)")
-    blockage_result = ai_coordinator.handle_path_blocked("scout_2", (4, 5), generate_voice=False)
-    
-    if blockage_result['success']:
-        print(f"\n✓ Obstacle added at {blockage_result['blocked_position']}")
-        print(f"✓ Total obstacles: {blockage_result['total_obstacles']}")
-        print(f"\nAffected Humans:")
-        for human_id, changes in blockage_result['affected_humans'].items():
-            if changes.get('path_changed'):
-                print(f"  {human_id}: Path recalculated ({changes.get('new_distance', 'N/A')} steps)")
+    import sys
+    if "--simulate" in sys.argv:
+        run_simulation(num_robots=3)
+    else:
+        print("Run with --simulate to start the building simulation.")
+        print("=" * 60)
+        print("TESTING AI EVACUATION COORDINATOR")
+        print("(Dynamic Pathfinding - Robots Explore Independently)")
+        print("=" * 60)
         
-        print(f"\nAI Update:")
-        print(blockage_result['guidance_text'])
-    
-    # Get Flutter update
-    print("\n\n" + "=" * 60)
-    print("4. FLUTTER APP DATA:")
-    print("=" * 60)
-    flutter_data = ai_coordinator.get_flutter_update()
-    print(f"Robots exploring: {flutter_data['system_status']['robots_exploring']}")
-    print(f"Humans detected: {flutter_data['system_status']['humans_detected']}")
-    print(f"Humans with paths: {flutter_data['system_status']['humans_with_paths']}")
-    print(f"\nFull data:")
-    print(json.dumps(flutter_data, indent=2))
-    
-    print("\n" + "=" * 60)
-    print("✓ Test Complete!")
-    print("=" * 60)
+        # Create maze
+        maze = MazeGrid(8)
+        
+        # Add obstacles
+        maze.add_obstacle(2, 2)
+        maze.add_obstacle(2, 3)
+        maze.add_obstacle(5, 5)
+        
+        # Add exits
+        maze.add_exit(7, 7)
+        maze.add_exit(0, 7)
+        
+        # Add scout robots (they explore independently)
+        maze.add_robot("scout_1", 0, 0)
+        maze.add_robot("scout_2", 7, 0)
+        
+        # Add humans
+        maze.add_human("human_1", 4, 4)
+        maze.add_human("human_2", 5, 3)
+        maze.add_human("human_3", 6, 6)
+        
+        # Create AI coordinator
+        ai_coordinator = EvacuationAICoordinator(maze)
+        
+        # Simulate robot exploration
+        print("\n1. Robots Exploring...")
+        ai_coordinator.evacuation_coordinator.update_robot_exploration("scout_1", (1, 1))
+        ai_coordinator.evacuation_coordinator.update_robot_exploration("scout_1", (2, 1))
+        ai_coordinator.evacuation_coordinator.robot_detected_human("scout_1", "human_1", (4, 4))
+        print("✓ Scout 1 detected human_1")
+        
+        # Analyze and generate guidance
+        print("\n2. Generating AI Evacuation Guidance...")
+        result = ai_coordinator.analyze_and_guide(generate_voice=False)
+        
+        print("\n" + "=" * 60)
+        print("EVACUATION GUIDANCE:")
+        print("=" * 60)
+        print(result['guidance_text'])
+        print("\n" + "=" * 60)
+        
+        print(f"\nHumans in danger (priority order): {result['humans_in_danger']}")
+        print(f"\nEvacuation Plans:")
+        for human_id, plan in result['evacuation_plans'].items():
+            print(f"  {human_id}: {plan.get('distance_to_exit', 'N/A')} steps to exit {plan.get('exit_position', 'N/A')}")
+        
+        if result['voice_file']:
+            print(f"\n✓ Voice guidance generated: {result['voice_file']}")
+        
+        # Test dynamic obstacle detection
+        print("\n\n" + "=" * 60)
+        print("3. SIMULATING DYNAMIC OBSTACLE DETECTION...")
+        print("=" * 60)
+        print("Scout 2 detects obstacle at (4, 5)")
+        blockage_result = ai_coordinator.handle_path_blocked("scout_2", (4, 5), generate_voice=False)
+        
+        if blockage_result['success']:
+            print(f"\n✓ Obstacle added at {blockage_result['blocked_position']}")
+            print(f"✓ Total obstacles: {blockage_result['total_obstacles']}")
+            print(f"\nAffected Humans:")
+            for human_id, changes in blockage_result['affected_humans'].items():
+                if changes.get('path_changed'):
+                    print(f"  {human_id}: Path recalculated ({changes.get('new_distance', 'N/A')} steps)")
+            
+            print(f"\nAI Update:")
+            print(blockage_result['guidance_text'])
+        
+        # Get Flutter update
+        print("\n\n" + "=" * 60)
+        print("4. FLUTTER APP DATA:")
+        print("=" * 60)
+        flutter_data = ai_coordinator.get_flutter_update()
+        print(f"Robots exploring: {flutter_data['system_status']['robots_exploring']}")
+        print(f"Humans detected: {flutter_data['system_status']['humans_detected']}")
+        print(f"Humans with paths: {flutter_data['system_status']['humans_with_paths']}")
+        print(f"\nFull data:")
+        print(json.dumps(flutter_data, indent=2))
+        
+        print("\n" + "=" * 60)
+        print("✓ Test Complete!")
+        print("=" * 60)
 
