@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter/scheduler.dart';
 
 class RobotData {
   final String id;
@@ -143,10 +145,35 @@ class EvacuationState extends ChangeNotifier {
       }
       
       _error = null;
-      notifyListeners();
+      _safeNotifyListeners();
     } catch (e) {
       _error = 'Failed to parse data: $e';
-      notifyListeners();
+      _safeNotifyListeners();
+    }
+  }
+  
+  // Notify listeners safely: if called during the build phase, schedule
+  // the notification for the next frame to avoid "setState() or
+  // markNeedsBuild() called during build" exceptions when widgets are
+  // still being built.
+  void _safeNotifyListeners() {
+    try {
+      final SchedulerPhase phase = SchedulerBinding.instance.schedulerPhase;
+      if (phase == SchedulerPhase.idle || phase == SchedulerPhase.postFrameCallbacks) {
+        notifyListeners();
+      } else {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          // Only call if there are still listeners
+          try {
+            notifyListeners();
+          } catch (_) {}
+        });
+      }
+    } catch (e) {
+      // Fallback: if scheduler is not available for some reason, call directly
+      try {
+        notifyListeners();
+      } catch (_) {}
     }
   }
 
