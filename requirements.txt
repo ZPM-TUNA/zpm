@@ -1,0 +1,27 @@
+# ZPM-TUNA Evacuation System Requirements
+# Knight Hacks 2025
+
+# Web Framework
+flask==3.0.0
+flask-cors==4.0.0
+
+# AI & ML
+google-generativeai==0.3.2
+anthropic==0.8.1
+
+# Computer Vision
+opencv-python==4.10.0.84
+inference-sdk==0.9.0
+
+# Utilities
+python-dotenv==1.0.0
+requests==2.31.0
+numpy==2.0.0
+
+# Audio Processing (Optional)
+# elevenlabs==0.2.26
+
+# ROS Integration (Optional - install separately)
+# rospy
+# rosbridge-library
+

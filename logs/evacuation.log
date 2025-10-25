@@ -1,0 +1,501 @@
+============================================================
+EVACUATION COORDINATION SERVER
+============================================================
+Initializing maze...
+Maze initialized: 8x8 grid with 2 exits
+✓ Maze initialized
+
+Starting server on http://0.0.0.0:5001
+============================================================
+
+Available endpoints:
+  GET  /health - Health check
+  GET  /api/maze/state - Get maze state
+  POST /api/maze/initialize - Initialize maze
+  POST /api/robots/detect - Detect robots from image
+  POST /api/robots/update - Update robot position
+  POST /api/humans/detect - Detect humans from image
+  POST /api/humans/update - Update human position
+  POST /api/evacuation/analyze - Analyze & generate guidance
+  POST /api/evacuation/blockage - Handle path blockage
+  GET  /api/flutter/update - Get Flutter app data
+  POST /api/ros/broadcast - Receive ROS broadcasts
+  POST /api/demo/setup - Setup demo scenario
+
+ELEGOO Robot Control:
+  POST /api/elegoo/register - Register ELEGOO robot
+  POST /api/elegoo/connect/<robot_id> - Connect to robot
+  POST /api/elegoo/disconnect/<robot_id> - Disconnect robot
+  POST /api/elegoo/command - Send command to robot
+  POST /api/elegoo/follow_path - Robot follow path
+  GET  /api/elegoo/sensors/<robot_id> - Get sensor data
+  POST /api/elegoo/stop_all - Emergency stop all robots
+============================================================
+ * Serving Flask app 'evacuation_server'
+ * Debug mode: on
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://10.37.33.156:5001
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:werkzeug: * Restarting with watchdog (fsevents)
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 649-053-784
+INFO:werkzeug:127.0.0.1 - - [24/Oct/2025 20:16:21] "GET /health HTTP/1.1" 200 -
+INFO:werkzeug: * Detected change in '/Users/madhav/Desktop/KnightHacks/robot_controller.py', reloading
+INFO:werkzeug: * Detected change in '/Users/madhav/Desktop/KnightHacks/robot_controller.py', reloading
+============================================================
+EVACUATION COORDINATION SERVER
+============================================================
+Initializing maze...
+Maze initialized: 8x8 grid with 2 exits
+✓ Maze initialized
+
+Starting server on http://0.0.0.0:5001
+============================================================
+
+Available endpoints:
+  GET  /health - Health check
+  GET  /api/maze/state - Get maze state
+  POST /api/maze/initialize - Initialize maze
+  POST /api/robots/detect - Detect robots from image
+  POST /api/robots/update - Update robot position
+  POST /api/humans/detect - Detect humans from image
+  POST /api/humans/update - Update human position
+  POST /api/evacuation/analyze - Analyze & generate guidance
+  POST /api/evacuation/blockage - Handle path blockage
+  GET  /api/flutter/update - Get Flutter app data
+  POST /api/ros/broadcast - Receive ROS broadcasts
+  POST /api/demo/setup - Setup demo scenario
+
+ELEGOO Robot Control:
+  POST /api/elegoo/register - Register ELEGOO robot
+  POST /api/elegoo/connect/<robot_id> - Connect to robot
+  POST /api/elegoo/disconnect/<robot_id> - Disconnect robot
+  POST /api/elegoo/command - Send command to robot
+  POST /api/elegoo/follow_path - Robot follow path
+  GET  /api/elegoo/sensors/<robot_id> - Get sensor data
+  POST /api/elegoo/stop_all - Emergency stop all robots
+============================================================
+INFO:werkzeug: * Restarting with watchdog (fsevents)
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 649-053-784
+INFO:werkzeug: * Detected change in '/Users/madhav/Desktop/KnightHacks/robot_controller.py', reloading
+INFO:werkzeug: * Detected change in '/Users/madhav/Desktop/KnightHacks/robot_controller.py', reloading
+============================================================
+EVACUATION COORDINATION SERVER
+============================================================
+Initializing maze...
+Maze initialized: 8x8 grid with 2 exits
+✓ Maze initialized
+
+Starting server on http://0.0.0.0:5001
+============================================================
+
+Available endpoints:
+  GET  /health - Health check
+  GET  /api/maze/state - Get maze state
+  POST /api/maze/initialize - Initialize maze
+  POST /api/robots/detect - Detect robots from image
+  POST /api/robots/update - Update robot position
+  POST /api/humans/detect - Detect humans from image
+  POST /api/humans/update - Update human position
+  POST /api/evacuation/analyze - Analyze & generate guidance
+  POST /api/evacuation/blockage - Handle path blockage
+  GET  /api/flutter/update - Get Flutter app data
+  POST /api/ros/broadcast - Receive ROS broadcasts
+  POST /api/demo/setup - Setup demo scenario
+
+ELEGOO Robot Control:
+  POST /api/elegoo/register - Register ELEGOO robot
+  POST /api/elegoo/connect/<robot_id> - Connect to robot
+  POST /api/elegoo/disconnect/<robot_id> - Disconnect robot
+  POST /api/elegoo/command - Send command to robot
+  POST /api/elegoo/follow_path - Robot follow path
+  GET  /api/elegoo/sensors/<robot_id> - Get sensor data
+  POST /api/elegoo/stop_all - Emergency stop all robots
+============================================================
+INFO:werkzeug: * Restarting with watchdog (fsevents)
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 649-053-784
+INFO:werkzeug: * Detected change in '/Users/madhav/Desktop/KnightHacks/robot_controller.py', reloading
+============================================================
+EVACUATION COORDINATION SERVER
+============================================================
+Initializing maze...
+Maze initialized: 8x8 grid with 2 exits
+✓ Maze initialized
+
+Starting server on http://0.0.0.0:5001
+============================================================
+
+Available endpoints:
+  GET  /health - Health check
+  GET  /api/maze/state - Get maze state
+  POST /api/maze/initialize - Initialize maze
+  POST /api/robots/detect - Detect robots from image
+  POST /api/robots/update - Update robot position
+  POST /api/humans/detect - Detect humans from image
+  POST /api/humans/update - Update human position
+  POST /api/evacuation/analyze - Analyze & generate guidance
+  POST /api/evacuation/blockage - Handle path blockage
+  GET  /api/flutter/update - Get Flutter app data
+  POST /api/ros/broadcast - Receive ROS broadcasts
+  POST /api/demo/setup - Setup demo scenario
+
+ELEGOO Robot Control:
+  POST /api/elegoo/register - Register ELEGOO robot
+  POST /api/elegoo/connect/<robot_id> - Connect to robot
+  POST /api/elegoo/disconnect/<robot_id> - Disconnect robot
+  POST /api/elegoo/command - Send command to robot
+  POST /api/elegoo/follow_path - Robot follow path
+  GET  /api/elegoo/sensors/<robot_id> - Get sensor data
+  POST /api/elegoo/stop_all - Emergency stop all robots
+============================================================
+INFO:werkzeug: * Restarting with watchdog (fsevents)
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 649-053-784
+INFO:werkzeug: * Detected change in '/Users/madhav/Desktop/KnightHacks/robot_controller.py', reloading
+INFO:werkzeug: * Detected change in '/Users/madhav/Desktop/KnightHacks/robot_controller.py', reloading
+============================================================
+EVACUATION COORDINATION SERVER
+============================================================
+Initializing maze...
+Maze initialized: 8x8 grid with 2 exits
+✓ Maze initialized
+
+Starting server on http://0.0.0.0:5001
+============================================================
+
+Available endpoints:
+  GET  /health - Health check
+  GET  /api/maze/state - Get maze state
+  POST /api/maze/initialize - Initialize maze
+  POST /api/robots/detect - Detect robots from image
+  POST /api/robots/update - Update robot position
+  POST /api/humans/detect - Detect humans from image
+  POST /api/humans/update - Update human position
+  POST /api/evacuation/analyze - Analyze & generate guidance
+  POST /api/evacuation/blockage - Handle path blockage
+  GET  /api/flutter/update - Get Flutter app data
+  POST /api/ros/broadcast - Receive ROS broadcasts
+  POST /api/demo/setup - Setup demo scenario
+
+ELEGOO Robot Control:
+  POST /api/elegoo/register - Register ELEGOO robot
+  POST /api/elegoo/connect/<robot_id> - Connect to robot
+  POST /api/elegoo/disconnect/<robot_id> - Disconnect robot
+  POST /api/elegoo/command - Send command to robot
+  POST /api/elegoo/follow_path - Robot follow path
+  GET  /api/elegoo/sensors/<robot_id> - Get sensor data
+  POST /api/elegoo/stop_all - Emergency stop all robots
+============================================================
+INFO:werkzeug: * Restarting with watchdog (fsevents)
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 649-053-784
+INFO:werkzeug: * Detected change in '/Users/madhav/Desktop/KnightHacks/robot_controller.py', reloading
+============================================================
+EVACUATION COORDINATION SERVER
+============================================================
+Initializing maze...
+Maze initialized: 8x8 grid with 2 exits
+✓ Maze initialized
+
+Starting server on http://0.0.0.0:5001
+============================================================
+
+Available endpoints:
+  GET  /health - Health check
+  GET  /api/maze/state - Get maze state
+  POST /api/maze/initialize - Initialize maze
+  POST /api/robots/detect - Detect robots from image
+  POST /api/robots/update - Update robot position
+  POST /api/humans/detect - Detect humans from image
+  POST /api/humans/update - Update human position
+  POST /api/evacuation/analyze - Analyze & generate guidance
+  POST /api/evacuation/blockage - Handle path blockage
+  GET  /api/flutter/update - Get Flutter app data
+  POST /api/ros/broadcast - Receive ROS broadcasts
+  POST /api/demo/setup - Setup demo scenario
+
+ELEGOO Robot Control:
+  POST /api/elegoo/register - Register ELEGOO robot
+  POST /api/elegoo/connect/<robot_id> - Connect to robot
+  POST /api/elegoo/disconnect/<robot_id> - Disconnect robot
+  POST /api/elegoo/command - Send command to robot
+  POST /api/elegoo/follow_path - Robot follow path
+  GET  /api/elegoo/sensors/<robot_id> - Get sensor data
+  POST /api/elegoo/stop_all - Emergency stop all robots
+============================================================
+INFO:werkzeug: * Restarting with watchdog (fsevents)
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 649-053-784
+INFO:werkzeug: * Detected change in '/Users/madhav/Desktop/KnightHacks/evacuation_server.py', reloading
+INFO:werkzeug: * Detected change in '/Users/madhav/Desktop/KnightHacks/evacuation_server.py', reloading
+============================================================
+EVACUATION COORDINATION SERVER
+============================================================
+Initializing maze...
+Maze initialized: 8x8 grid with 2 exits
+✓ Maze initialized
+
+Starting server on http://0.0.0.0:5001
+============================================================
+
+Available endpoints:
+  GET  /health - Health check
+  GET  /api/maze/state - Get maze state
+  POST /api/maze/initialize - Initialize maze
+  POST /api/robots/detect - Detect robots from image
+  POST /api/robots/update - Update robot position
+  POST /api/humans/detect - Detect humans from image
+  POST /api/humans/update - Update human position
+  POST /api/evacuation/analyze - Analyze & generate guidance
+  POST /api/evacuation/blockage - Handle path blockage
+  GET  /api/flutter/update - Get Flutter app data
+  POST /api/ros/broadcast - Receive ROS broadcasts
+  POST /api/demo/setup - Setup demo scenario
+
+ELEGOO Robot Control:
+  POST /api/elegoo/register - Register ELEGOO robot
+  POST /api/elegoo/connect/<robot_id> - Connect to robot
+  POST /api/elegoo/disconnect/<robot_id> - Disconnect robot
+  POST /api/elegoo/command - Send command to robot
+  POST /api/elegoo/follow_path - Robot follow path
+  GET  /api/elegoo/sensors/<robot_id> - Get sensor data
+  POST /api/elegoo/stop_all - Emergency stop all robots
+============================================================
+INFO:werkzeug: * Restarting with watchdog (fsevents)
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 649-053-784
+INFO:werkzeug: * Detected change in '/Users/madhav/Desktop/KnightHacks/evacuation_server.py', reloading
+============================================================
+EVACUATION COORDINATION SERVER
+============================================================
+Initializing maze...
+Maze initialized: 8x8 grid with 2 exits
+✓ Maze initialized
+
+Starting server on http://0.0.0.0:5001
+============================================================
+
+Available endpoints:
+  GET  /health - Health check
+  GET  /api/maze/state - Get maze state
+  POST /api/maze/initialize - Initialize maze
+  POST /api/robots/detect - Detect robots from image
+  POST /api/robots/update - Update robot position
+  POST /api/humans/detect - Detect humans from image
+  POST /api/humans/update - Update human position
+  POST /api/evacuation/analyze - Analyze & generate guidance
+  POST /api/evacuation/blockage - Handle path blockage
+  GET  /api/flutter/update - Get Flutter app data
+  POST /api/ros/broadcast - Receive ROS broadcasts
+  POST /api/demo/setup - Setup demo scenario
+
+ELEGOO Robot Control:
+  POST /api/elegoo/register - Register ELEGOO robot
+  POST /api/elegoo/connect/<robot_id> - Connect to robot
+  POST /api/elegoo/disconnect/<robot_id> - Disconnect robot
+  POST /api/elegoo/command - Send command to robot
+  POST /api/elegoo/follow_path - Robot follow path
+  GET  /api/elegoo/sensors/<robot_id> - Get sensor data
+  POST /api/elegoo/stop_all - Emergency stop all robots
+============================================================
+INFO:werkzeug: * Restarting with watchdog (fsevents)
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 649-053-784
+INFO:werkzeug: * Detected change in '/Users/madhav/Desktop/KnightHacks/evacuation_server.py', reloading
+============================================================
+EVACUATION COORDINATION SERVER
+============================================================
+Initializing maze...
+Maze initialized: 8x8 grid with 2 exits
+✓ Maze initialized
+
+Starting server on http://0.0.0.0:5001
+============================================================
+
+Available endpoints:
+  GET  /health - Health check
+  GET  /api/maze/state - Get maze state
+  POST /api/maze/initialize - Initialize maze
+  POST /api/robots/detect - Detect robots from image
+  POST /api/robots/update - Update robot position
+  POST /api/humans/detect - Detect humans from image
+  POST /api/humans/update - Update human position
+  POST /api/evacuation/analyze - Analyze & generate guidance
+  POST /api/evacuation/blockage - Handle path blockage
+  GET  /api/flutter/update - Get Flutter app data
+  POST /api/ros/broadcast - Receive ROS broadcasts
+  POST /api/demo/setup - Setup demo scenario
+
+ELEGOO Robot Control:
+  POST /api/elegoo/register - Register ELEGOO robot
+  POST /api/elegoo/connect/<robot_id> - Connect to robot
+  POST /api/elegoo/disconnect/<robot_id> - Disconnect robot
+  POST /api/elegoo/command - Send command to robot
+  POST /api/elegoo/follow_path - Robot follow path
+  GET  /api/elegoo/sensors/<robot_id> - Get sensor data
+  POST /api/elegoo/stop_all - Emergency stop all robots
+============================================================
+INFO:werkzeug: * Restarting with watchdog (fsevents)
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 649-053-784
+INFO:werkzeug: * Detected change in '/Users/madhav/Desktop/KnightHacks/evacuation_server.py', reloading
+INFO:werkzeug: * Detected change in '/Users/madhav/Desktop/KnightHacks/robot_controller.py', reloading
+INFO:werkzeug: * Detected change in '/Users/madhav/Desktop/KnightHacks/evacuation_server.py', reloading
+INFO:werkzeug: * Detected change in '/Users/madhav/Desktop/KnightHacks/robot_controller.py', reloading
+============================================================
+EVACUATION COORDINATION SERVER
+============================================================
+Initializing maze...
+Maze initialized: 8x8 grid with 2 exits
+✓ Maze initialized
+
+Starting server on http://0.0.0.0:5001
+============================================================
+
+Available endpoints:
+  GET  /health - Health check
+  GET  /api/maze/state - Get maze state
+  POST /api/maze/initialize - Initialize maze
+  POST /api/robots/detect - Detect robots from image
+  POST /api/robots/update - Update robot position
+  POST /api/humans/detect - Detect humans from image
+  POST /api/humans/update - Update human position
+  POST /api/evacuation/analyze - Analyze & generate guidance
+  POST /api/evacuation/blockage - Handle path blockage
+  GET  /api/flutter/update - Get Flutter app data
+  POST /api/ros/broadcast - Receive ROS broadcasts
+  POST /api/demo/setup - Setup demo scenario
+
+ELEGOO Robot Control:
+  POST /api/elegoo/register - Register ELEGOO robot (with start_position)
+  POST /api/elegoo/connect/<robot_id> - Connect to robot
+  POST /api/elegoo/disconnect/<robot_id> - Disconnect robot
+  POST /api/elegoo/command - Send command to robot
+  POST /api/elegoo/follow_path - Robot follow path
+  GET  /api/elegoo/sensors/<robot_id> - Get sensor data
+  GET  /api/elegoo/position/<robot_id> - Get ESTIMATED position
+  POST /api/elegoo/stop_all - Emergency stop all robots
+============================================================
+INFO:werkzeug: * Restarting with watchdog (fsevents)
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 649-053-784
+INFO:werkzeug: * Detected change in '/Users/madhav/Desktop/KnightHacks/test_voice_generation.py', reloading
+INFO:werkzeug: * Detected change in '/Users/madhav/Desktop/KnightHacks/test_voice_generation.py', reloading
+============================================================
+EVACUATION COORDINATION SERVER
+============================================================
+Initializing maze...
+Maze initialized: 8x8 grid with 2 exits
+✓ Maze initialized
+
+Starting server on http://0.0.0.0:5001
+============================================================
+
+Available endpoints:
+  GET  /health - Health check
+  GET  /api/maze/state - Get maze state
+  POST /api/maze/initialize - Initialize maze
+  POST /api/robots/detect - Detect robots from image
+  POST /api/robots/update - Update robot position
+  POST /api/humans/detect - Detect humans from image
+  POST /api/humans/update - Update human position
+  POST /api/evacuation/analyze - Analyze & generate guidance
+  POST /api/evacuation/blockage - Handle path blockage
+  GET  /api/flutter/update - Get Flutter app data
+  POST /api/ros/broadcast - Receive ROS broadcasts
+  POST /api/demo/setup - Setup demo scenario
+
+ELEGOO Robot Control:
+  POST /api/elegoo/register - Register ELEGOO robot (with start_position)
+  POST /api/elegoo/connect/<robot_id> - Connect to robot
+  POST /api/elegoo/disconnect/<robot_id> - Disconnect robot
+  POST /api/elegoo/command - Send command to robot
+  POST /api/elegoo/follow_path - Robot follow path
+  GET  /api/elegoo/sensors/<robot_id> - Get sensor data
+  GET  /api/elegoo/position/<robot_id> - Get ESTIMATED position
+  POST /api/elegoo/stop_all - Emergency stop all robots
+============================================================
+INFO:werkzeug: * Restarting with watchdog (fsevents)
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 649-053-784
+INFO:werkzeug: * Detected change in '/Users/madhav/Desktop/KnightHacks/test_voice_generation.py', reloading
+INFO:werkzeug: * Detected change in '/Users/madhav/Desktop/KnightHacks/test_voice_generation.py', reloading
+============================================================
+EVACUATION COORDINATION SERVER
+============================================================
+Initializing maze...
+Maze initialized: 8x8 grid with 2 exits
+✓ Maze initialized
+
+Starting server on http://0.0.0.0:5001
+============================================================
+
+Available endpoints:
+  GET  /health - Health check
+  GET  /api/maze/state - Get maze state
+  POST /api/maze/initialize - Initialize maze
+  POST /api/robots/detect - Detect robots from image
+  POST /api/robots/update - Update robot position
+  POST /api/humans/detect - Detect humans from image
+  POST /api/humans/update - Update human position
+  POST /api/evacuation/analyze - Analyze & generate guidance
+  POST /api/evacuation/blockage - Handle path blockage
+  GET  /api/flutter/update - Get Flutter app data
+  POST /api/ros/broadcast - Receive ROS broadcasts
+  POST /api/demo/setup - Setup demo scenario
+
+ELEGOO Robot Control:
+  POST /api/elegoo/register - Register ELEGOO robot (with start_position)
+  POST /api/elegoo/connect/<robot_id> - Connect to robot
+  POST /api/elegoo/disconnect/<robot_id> - Disconnect robot
+  POST /api/elegoo/command - Send command to robot
+  POST /api/elegoo/follow_path - Robot follow path
+  GET  /api/elegoo/sensors/<robot_id> - Get sensor data
+  GET  /api/elegoo/position/<robot_id> - Get ESTIMATED position
+  POST /api/elegoo/stop_all - Emergency stop all robots
+============================================================
+INFO:werkzeug: * Restarting with watchdog (fsevents)
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 649-053-784
+INFO:werkzeug: * Detected change in '/Users/madhav/Desktop/KnightHacks/test_voice_generation.py', reloading
+============================================================
+EVACUATION COORDINATION SERVER
+============================================================
+Initializing maze...
+Maze initialized: 8x8 grid with 2 exits
+✓ Maze initialized
+
+Starting server on http://0.0.0.0:5001
+============================================================
+
+Available endpoints:
+  GET  /health - Health check
+  GET  /api/maze/state - Get maze state
+  POST /api/maze/initialize - Initialize maze
+  POST /api/robots/detect - Detect robots from image
+  POST /api/robots/update - Update robot position
+  POST /api/humans/detect - Detect humans from image
+  POST /api/humans/update - Update human position
+  POST /api/evacuation/analyze - Analyze & generate guidance
+  POST /api/evacuation/blockage - Handle path blockage
+  GET  /api/flutter/update - Get Flutter app data
+  POST /api/ros/broadcast - Receive ROS broadcasts
+  POST /api/demo/setup - Setup demo scenario
+
+ELEGOO Robot Control:
+  POST /api/elegoo/register - Register ELEGOO robot (with start_position)
+  POST /api/elegoo/connect/<robot_id> - Connect to robot
+  POST /api/elegoo/disconnect/<robot_id> - Disconnect robot
+  POST /api/elegoo/command - Send command to robot
+  POST /api/elegoo/follow_path - Robot follow path
+  GET  /api/elegoo/sensors/<robot_id> - Get sensor data
+  GET  /api/elegoo/position/<robot_id> - Get ESTIMATED position
+  POST /api/elegoo/stop_all - Emergency stop all robots
+============================================================
+INFO:werkzeug: * Restarting with watchdog (fsevents)
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 649-053-784
