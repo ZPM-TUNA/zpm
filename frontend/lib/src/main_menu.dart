@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'login.dart';
 
 class MainMenu extends StatefulWidget {
   const MainMenu({super.key});
@@ -52,22 +53,6 @@ class _MainMenuState extends State<MainMenu> {
                 selected: _selectedIndex == 2,
                 onTap: () => _selectIndex(2),
               ),
-              ListTile(
-                leading: const Icon(Icons.timeline),
-                title: const Text('Pathfinding'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PathfindingScreen()));
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.exit_to_app),
-                title: const Text('Evacuation'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => const EvacuationScreen()));
-                },
-              ),
               const Spacer(),
               const Divider(),
               ListTile(
@@ -90,7 +75,11 @@ class _MainMenuState extends State<MainMenu> {
                 leading: const Icon(Icons.logout),
                 title: const Text('Sign out'),
                 onTap: () {
-                  Navigator.of(context).popUntil((route) => route.isFirst);
+                  // Clear navigation stack and go back to LoginScreen
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    (route) => false,
+                  );
                 },
               ),
             ],
