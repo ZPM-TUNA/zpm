@@ -44,16 +44,7 @@ class _MainMenuState extends State<MainMenu> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('ZPM-TUNA'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => _refreshData(context),
-            tooltip: 'Refresh',
-          ),
-        ],
-      ),
+      appBar: AppBar(title: Text(_titleForIndex(_selectedIndex))),
       drawer: Drawer(
         child: SafeArea(
           child: Column(
@@ -135,11 +126,20 @@ class _MainMenuState extends State<MainMenu> {
       ),
     );
   }
+
+  String _titleForIndex(int index) {
+    switch (index) {
+      case 1:
+        return 'ZeroPanic — Map';
+      case 2:
+        return 'ZeroPanic — Robots';
+      default:
+        return 'ZeroPanic — Dashboard';
+    }
+  }
 }
 
-// ============================================================================
-// DASHBOARD SCREEN - Shows overview with real backend data
-// ============================================================================
+// Placeholder pages for the main menu sections. Replace with real implementations.
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
