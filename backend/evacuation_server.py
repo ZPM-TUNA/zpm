@@ -8,18 +8,25 @@ from flask_cors import CORS
 import requests
 import os
 import json
+import time
+from dotenv import load_dotenv
 from pathfinding import MazeGrid, EvacuationCoordinator
 from ai_coordinator import EvacuationAICoordinator
 from robot_controller import MultiRobotController
+from utils import validate_position, format_response, log_api_call, create_error_response, create_success_response
 from typing import Dict, List
+
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
 # Global state
-maze = MazeGrid(8)
+maze = MazeGrid(int(os.getenv('DEFAULT_MAZE_SIZE', 8)))
 ai_coordinator = None
-robot_detection_api = "http://localhost:5000/detect-robots"
+detection_port = os.getenv('DETECTION_SERVER_PORT', 5000)
+robot_detection_api = f"http://localhost:{detection_port}/detect-robots"
 robot_controller = MultiRobotController()
 
 # Initialize maze with default configuration
@@ -40,14 +47,17 @@ def initialize_maze():
 @app.route('/health', methods=['GET'])
 def health():
     """Health check endpoint"""
-    return jsonify({
+    start_time = time.time()
+    response_data = {
         'status': 'running',
         'service': 'evacuation-coordinator',
         'maze_size': maze.size,
         'robots': len(maze.robots),
         'humans': len(maze.humans),
         'exits': len(maze.exits)
-    })
+    }
+    log_api_call('/health', 'GET', 200, (time.time() - start_time) * 1000)
+    return jsonify(response_data)
 
 
 @app.route('/api/maze/state', methods=['GET'])
@@ -138,17 +148,23 @@ def update_robot_position():
         "position": [x, y]
     }
     """
+    start_time = time.time()
     data = request.json
     robot_id = data.get('robot_id')
     position = data.get('position')
     
     if not robot_id or not position:
-        return jsonify({'error': 'Missing robot_id or position'}), 400
+        log_api_call('/api/robots/update', 'POST', 400, (time.time() - start_time) * 1000)
+        return create_error_response('Missing robot_id or position')
+    
+    if not validate_position(position[0], position[1], maze.size):
+        log_api_call('/api/robots/update', 'POST', 400, (time.time() - start_time) * 1000)
+        return create_error_response('Invalid position coordinates')
     
     maze.add_robot(robot_id, position[0], position[1])
+    log_api_call('/api/robots/update', 'POST', 200, (time.time() - start_time) * 1000)
     
-    return jsonify({
-        'success': True,
+    return create_success_response('Robot position updated', {
         'robot_id': robot_id,
         'position': position
     })
@@ -198,17 +214,23 @@ def update_human_position():
         "position": [x, y]
     }
     """
+    start_time = time.time()
     data = request.json
     human_id = data.get('human_id')
     position = data.get('position')
     
     if not human_id or not position:
-        return jsonify({'error': 'Missing human_id or position'}), 400
+        log_api_call('/api/humans/update', 'POST', 400, (time.time() - start_time) * 1000)
+        return create_error_response('Missing human_id or position')
+    
+    if not validate_position(position[0], position[1], maze.size):
+        log_api_call('/api/humans/update', 'POST', 400, (time.time() - start_time) * 1000)
+        return create_error_response('Invalid position coordinates')
     
     maze.add_human(human_id, position[0], position[1])
+    log_api_call('/api/humans/update', 'POST', 200, (time.time() - start_time) * 1000)
     
-    return jsonify({
-        'success': True,
+    return create_success_response('Human position updated', {
         'human_id': human_id,
         'position': position
     })
@@ -620,7 +642,12 @@ if __name__ == '__main__':
     print("Initializing maze...")
     initialize_maze()
     print("✓ Maze initialized")
-    print("\nStarting server on http://0.0.0.0:5001")
+    
+    # Get configuration from environment
+    port = int(os.getenv('EVACUATION_SERVER_PORT', 5001))
+    debug = os.getenv('DEBUG_MODE', 'true').lower() == 'true'
+    
+    print(f"\nStarting server on http://0.0.0.0:{port}")
     print("=" * 60)
     print("\nAvailable endpoints:")
     print("  GET  /health - Health check")
@@ -646,5 +673,5 @@ if __name__ == '__main__':
     print("  POST /api/elegoo/stop_all - Emergency stop all robots")
     print("=" * 60)
     
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    app.run(host='0.0.0.0', port=port, debug=debug)
 

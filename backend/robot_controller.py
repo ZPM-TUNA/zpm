@@ -7,8 +7,14 @@ import socket
 import json
 import time
 import threading
+import math
+import os
 from typing import Dict, List, Tuple, Optional
 import logging
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -17,21 +23,21 @@ logger = logging.getLogger(__name__)
 class ELEGOORobotController:
     """Controller for ELEGOO Smart Robot Car via WiFi socket connection"""
     
-    def __init__(self, robot_id: str, ip: str = "192.168.4.1", port: int = 100, start_position: Tuple[int, int] = (0, 0)):
+    def __init__(self, robot_id: str, ip: str = None, port: int = None, start_position: Tuple[int, int] = (0, 0)):
         self.robot_id = robot_id
-        self.ip = ip
-        self.port = port
+        self.ip = ip or os.getenv('DEFAULT_ROBOT_IP', '192.168.4.1')
+        self.port = port or int(os.getenv('DEFAULT_ROBOT_PORT', 100))
         self.socket = None
         self.connected = False
         self.command_counter = 0
         self.heartbeat_thread = None
         self.heartbeat_active = False
         
-        # Position tracking (HARDCODED parameters)
+        # Position tracking (configurable parameters)
         self.estimated_position = list(start_position)  # [x, y] in grid coordinates
         self.orientation = 0  # Degrees (0 = North/Up)
-        self.cell_size_cm = 30  # HARDCODED: 30cm per grid cell
-        self.speed_200_cm_per_sec = 10  # HARDCODED: Speed 200 = ~10 cm/sec
+        self.cell_size_cm = int(os.getenv('CELL_SIZE_CM', 30))  # cm per grid cell
+        self.speed_200_cm_per_sec = int(os.getenv('SPEED_200_CM_PER_SEC', 10))  # Speed 200 = ~10 cm/sec
         
     def connect(self) -> bool:
         """Establish socket connection to robot"""
@@ -126,7 +132,6 @@ class ELEGOORobotController:
         
         if command == "forward":
             # Move in current orientation direction
-            import math
             dx = cells_moved * math.sin(math.radians(self.orientation))
             dy = cells_moved * math.cos(math.radians(self.orientation))
             self.estimated_position[0] += dx
@@ -134,7 +139,6 @@ class ELEGOORobotController:
             logger.info(f"{self.robot_id} estimated moved forward {cells_moved:.2f} cells to {self.get_estimated_position()}")
         
         elif command == "backward":
-            import math
             dx = -cells_moved * math.sin(math.radians(self.orientation))
             dy = -cells_moved * math.cos(math.radians(self.orientation))
             self.estimated_position[0] += dx
@@ -312,7 +316,6 @@ class ELEGOORobotController:
         distance_cm = ((dx**2 + dy**2)**0.5) * cell_size_cm
         
         # Calculate angle to target
-        import math
         angle = math.degrees(math.atan2(dy, dx))
         
         # Turn to face target
@@ -371,7 +374,7 @@ class MultiRobotController:
         self.robots: Dict[str, ELEGOORobotController] = {}
         self.lock = threading.Lock()
     
-    def add_robot(self, robot_id: str, ip: str = "192.168.4.1", port: int = 100, start_position: Tuple[int, int] = (0, 0)):
+    def add_robot(self, robot_id: str, ip: str = None, port: int = None, start_position: Tuple[int, int] = (0, 0)):
         """Register a new robot with starting position"""
         with self.lock:
             robot = ELEGOORobotController(robot_id, ip, port, start_position)

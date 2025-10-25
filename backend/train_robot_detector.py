@@ -5,13 +5,17 @@ import cv2
 import base64
 import numpy as np
 import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__)
 
-# Initialize Roboflow client
+# Initialize Roboflow client with environment variables
 client = InferenceHTTPClient(
     api_url="https://serverless.roboflow.com",
-    api_key="ZYwFcdKkmGusAi65UBgE"
+    api_key=os.getenv('ROBOFLOW_API_KEY', 'ZYwFcdKkmGusAi65UBgE')  # Fallback for demo
 )
 
 @app.route('/detect-robots', methods=['POST'])
@@ -72,8 +76,8 @@ def detect_robots():
         # Run Roboflow workflow
         print("Calling Roboflow API...")
         result = client.run_workflow(
-            workspace_name="robotdetector",
-            workflow_id="find-toys-robots-and-figurines",
+            workspace_name=os.getenv('ROBOFLOW_WORKSPACE', 'robotdetector'),
+            workflow_id=os.getenv('ROBOFLOW_WORKFLOW_ID', 'find-toys-robots-and-figurines'),
             images={"image": image_input},
             use_cache=True
         )
@@ -171,4 +175,6 @@ def health():
 if __name__ == '__main__':
     print("Starting Robot Detector Server...")
     print(" Current directory:", os.getcwd())
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    port = int(os.getenv('DETECTION_SERVER_PORT', 5000))
+    debug = os.getenv('DEBUG_MODE', 'true').lower() == 'true'
+    app.run(host='0.0.0.0', port=port, debug=debug)

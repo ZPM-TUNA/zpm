@@ -4,7 +4,7 @@ Supports dynamic obstacle detection and multiple robots
 """
 
 import heapq
-from typing import List, Tuple, Set, Optional, Dict
+from typing import List, Tuple, Optional, Dict
 import numpy as np
 
 

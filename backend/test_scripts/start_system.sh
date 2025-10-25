@@ -15,6 +15,7 @@ if [ ! -f .env ]; then
     echo "   Create .env with your API keys:"
     echo "   GEMINI_API_KEY=your_key"
     echo "   ELEVENLABS_API_KEY=your_key (optional)"
+    echo "   ROBOFLOW_API_KEY=your_key"
     echo ""
 fi
 

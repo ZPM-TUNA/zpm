@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-API_KEY = os.getenv("ELEVEN_LABS_API_KEY")
+API_KEY = os.getenv("ELEVENLABS_API_KEY")
 
 VOICE_ID = "21m00Tcm4TlvDq8ikWAM"  # Rachel
 
