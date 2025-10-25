@@ -1,0 +1,158 @@
+# ============================================
+# ZPM-TUNA Knight Hacks 2025 - .gitignore
+# ============================================
+
+# ============================================
+# Python
+# ============================================
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# Distribution / packaging
+*.egg-info/
+dist/
+build/
+
+# ============================================
+# Environment Variables (IMPORTANT!)
+# ============================================
+.env
+.env.local
+.env.*.local
+*.env
+
+# API Keys (extra safety)
+*_API_KEY*
+api_keys.txt
+
+# ============================================
+# IDE / Editor
+# ============================================
+# VSCode
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+
+# Cursor
+.cursor/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ============================================
+# Logs
+# ============================================
+*.log
+logs/*.log
+backend/logs/*.log
+
+# Keep the logs directory but ignore contents
+!backend/logs/.gitkeep
+
+# ============================================
+# Temporary Files
+# ============================================
+# Temporary images
+temp_*.jpg
+temp_*.png
+temp_frame.*
+
+# Process IDs
+.pids
+*.pid
+
+# ============================================
+# Generated Audio Files
+# ============================================
+# ElevenLabs voice outputs
+*.mp3
+evacuation_guidance.mp3
+blockage_guidance.mp3
+fire_emergency_voice.mp3
+test_voice_output.mp3
+complete_pipeline_test.mp3
+
+# Keep example audio if you have one
+!example_voice.mp3
+
+# ============================================
+# Model Files (Large)
+# ============================================
+# YOLO models (not used, but just in case)
+*.pt
+*.pth
+*.onnx
+*.weights
+
+# ============================================
+# Test Data (Optional - comment out if needed)
+# ============================================
+# Robot test photos (74 images - might be large)
+# Uncomment if you don't want to commit these:
+# backend/robot_photos_jpg/*.jpg
+# !backend/robot_photos_jpg/robot_0.jpg  # Keep one example
+
+# ============================================
+# Documentation (Large folders)
+# ============================================
+# ELEGOO documentation (very large - ~500MB)
+# Uncomment if you don't want to commit:
+backend/ELEGOO Smart Robot Car Kit V4.0*/
+
+# ============================================
+# Build / Cache
+# ============================================
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ============================================
+# OS Generated
+# ============================================
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+.directory
+
+# ============================================
+# Project Specific
+# ============================================
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Test outputs
+test_output/
+output/
+
+# ============================================
+# Keep These Files (Whitelist)
+# ============================================
+# Keep one example image
+!backend/robot_8.jpg
+
+# Keep requirements
+!requirements.txt
+!backend/requirements.txt
+
+# Keep README if you create one
+!README.md
+
