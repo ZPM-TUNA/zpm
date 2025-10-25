@@ -3,6 +3,7 @@ import 'login.dart';
 import 'settings.dart';
 import 'about.dart';
 import 'map_screen.dart';
+import 'robots_screen.dart';
 
 class MainMenu extends StatefulWidget {
   const MainMenu({super.key});
@@ -71,19 +72,19 @@ class _MainMenuState extends State<MainMenu> {
               ),
               ListTile(
                 leading: Icon(Icons.dashboard, color: _selectedIndex == 0 ? const Color(0xFFFF7043) : Colors.grey[600]),
-                title: const Text('Dashboard'),
+                title: Text('Dashboard', style: TextStyle(color: _selectedIndex == 0 ? const Color(0xFFFF7043) : null)),
                 selected: _selectedIndex == 0,
                 onTap: () => _selectIndex(0),
               ),
               ListTile(
                 leading: Icon(Icons.map, color: _selectedIndex == 1 ? const Color(0xFFFF7043) : Colors.grey[600]),
-                title: const Text('Map'),
+                title: Text('Map', style: TextStyle(color: _selectedIndex == 1 ? const Color(0xFFFF7043) : null)),
                 selected: _selectedIndex == 1,
                 onTap: () => _selectIndex(1),
               ),
               ListTile(
                 leading: Icon(Icons.smart_toy, color: _selectedIndex == 2 ? const Color(0xFFFF7043) : Colors.grey[600]),
-                title: const Text('Robots'),
+                title: Text('Robots', style: TextStyle(color: _selectedIndex == 2 ? const Color(0xFFFF7043) : null)),
                 selected: _selectedIndex == 2,
                 onTap: () => _selectIndex(2),
               ),
