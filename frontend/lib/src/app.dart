@@ -20,39 +20,39 @@ class ZeroPanicApp extends StatelessWidget {
         builder: (context, themeProvider, _) {
           return MaterialApp(
             title: 'ZeroPanic',
+              // Temporarily do not seed the global color scheme. Keep explicit brand colors for icons/buttons.
               theme: ThemeData(
                 brightness: Brightness.light,
-                // Use the app seed color (matches Sign in button)
-                colorSchemeSeed: const Color(0xFFFF7043),
                 useMaterial3: true,
-                // ensure icons use the brand color rather than a brownish fallback
+                // explicit brand usages
                 iconTheme: const IconThemeData(color: Color(0xFFFF7043)),
                 appBarTheme: const AppBarTheme(iconTheme: IconThemeData(color: Color(0xFFFF7043))),
                 listTileTheme: const ListTileThemeData(iconColor: Color(0xFFFF7043)),
                 bottomNavigationBarTheme: const BottomNavigationBarThemeData(selectedItemColor: Color(0xFFFF7043)),
                 floatingActionButtonTheme: const FloatingActionButtonThemeData(backgroundColor: Color(0xFFFF7043)),
+                elevatedButtonTheme: ElevatedButtonThemeData(
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF7043), foregroundColor: Colors.white),
+                ),
                 textTheme: GoogleFonts.interTextTheme(),
                 primaryTextTheme: GoogleFonts.interTextTheme(),
               ),
               darkTheme: ThemeData(
                 brightness: Brightness.dark,
-                colorSchemeSeed: const Color(0xFFFF7043),
                 useMaterial3: true,
-                // dark theme icons: also use the brand color for emphasis
+                // explicit brand usages for dark mode as well
                 iconTheme: const IconThemeData(color: Color(0xFFFF7043)),
                 appBarTheme: const AppBarTheme(iconTheme: IconThemeData(color: Color(0xFFFF7043))),
                 listTileTheme: const ListTileThemeData(iconColor: Color(0xFFFF7043)),
                 bottomNavigationBarTheme: const BottomNavigationBarThemeData(selectedItemColor: Color(0xFFFF7043)),
                 floatingActionButtonTheme: const FloatingActionButtonThemeData(backgroundColor: Color(0xFFFF7043)),
+                elevatedButtonTheme: ElevatedButtonThemeData(
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF7043), foregroundColor: Colors.white),
+                ),
                 textTheme: GoogleFonts.interTextTheme(ThemeData(brightness: Brightness.dark).textTheme),
                 primaryTextTheme: GoogleFonts.interTextTheme(ThemeData(brightness: Brightness.dark).primaryTextTheme),
               ),
             themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-            // Ensure icons pick up the computed colorScheme.primary after the theme is applied
-            builder: (context, child) {
-              final scheme = Theme.of(context).colorScheme;
-              return IconTheme(data: IconThemeData(color: scheme.primary), child: child ?? const SizedBox.shrink());
-            },
+            // Do not override IconTheme here so explicit iconTheme values apply.
             home: const LoginScreen(),
           );
         },
