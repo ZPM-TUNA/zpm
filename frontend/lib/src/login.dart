@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'main_menu.dart';
+import 'forgot_password.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -82,7 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       CircleAvatar(
                         radius: 36,
-                        backgroundColor: theme.colorScheme.primary,
+                        backgroundColor: const Color(0xFFFF7043), // match Sign in button color
                         child: Icon(Icons.shield, color: theme.colorScheme.onPrimary, size: 36),
                       ),
                       const SizedBox(height: 8),
@@ -105,10 +106,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
                         autovalidateMode: _submitted ? AutovalidateMode.always : AutovalidateMode.disabled,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Email',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.email),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(16.0)),
+                          prefixIcon: const Icon(Icons.email),
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) return 'Please enter your email';
@@ -120,10 +121,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         controller: _passwordController,
                         obscureText: true,
                         autovalidateMode: _submitted ? AutovalidateMode.always : AutovalidateMode.disabled,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Password',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.lock),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(16.0)),
+                          prefixIcon: const Icon(Icons.lock),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) return 'Please enter your password';
@@ -136,9 +137,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 16),
 
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(255, 255, 112, 67), // slightly brighter orange-red
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
+                    padding: const EdgeInsets.symmetric(vertical: 14.0),
+                  ),
                   onPressed: _loading ? null : _handleSignIn,
                   child: _loading
-                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                       : const Text('Sign in'),
                 ),
 
@@ -149,18 +156,26 @@ class _LoginScreenState extends State<LoginScreen> {
                 ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: Colors.black),
                   onPressed: _loading ? null : _handleGoogleSignIn,
-                  icon: Image.network(
-                    'https://www.gstatic.com/devrel-devsite/prod/vb2a3b2aab2a0a5b3f8b4b6f6a7b8b9b0/google_48.png',
-                    height: 20,
-                    width: 20,
-                    errorBuilder: (context, error, stack) => const Icon(Icons.login),
+                  icon: Semantics(
+                    label: 'Google logo',
+                    image: true,
+                    child: Image.network(
+                      'https://developers.google.com/identity/images/g-logo.png',
+                      height: 20,
+                      width: 20,
+                      errorBuilder: (context, error, stack) => const Icon(Icons.login),
+                    ),
                   ),
                   label: const Text('Sign in with Google'),
                 ),
 
                 const SizedBox(height: 18),
                 TextButton(
-                  onPressed: () => _showMessage('Forgot password flow (not implemented)'),
+                  onPressed: () {
+                    if (!_loading) {
+                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()));
+                    }
+                  },
                   child: const Text('Forgot password?'),
                 ),
               ],
