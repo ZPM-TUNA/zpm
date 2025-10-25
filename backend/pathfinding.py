@@ -203,119 +203,171 @@ class AStarPathfinder:
 
 
 class EvacuationCoordinator:
-    """Coordinates multiple robots for evacuation"""
+    """Coordinates evacuation paths - robots explore independently, humans get evacuation routes"""
     
     def __init__(self, maze: MazeGrid):
         self.maze = maze
         self.pathfinder = AStarPathfinder(maze)
-        self.robot_paths = {}  # {robot_id: path}
-        self.human_assignments = {}  # {human_id: robot_id}
+        self.robot_explored_areas = {}  # {robot_id: [positions]}
+        self.human_evacuation_paths = {}  # {human_id: {'path': [], 'exit': (), 'distance': int}}
+        self.detected_humans = set()  # Humans detected by robots
     
-    def assign_rescue_paths(self) -> Dict[str, Dict]:
+    def calculate_evacuation_paths(self) -> Dict[str, Dict]:
         """
-        Assign optimal rescue paths for all robots
-        Returns dict with robot assignments and paths
+        Calculate evacuation paths for all detected humans
+        Robots are NOT assigned to humans - they explore independently
+        Returns dict with evacuation paths for each human
         """
-        assignments = {}
-        
-        for robot_id, robot_pos in self.maze.robots.items():
-            # Find nearest human in danger
-            nearest_human = self.find_nearest_human(robot_pos)
-            
-            if nearest_human:
-                human_id, human_pos = nearest_human
-                
-                # Path to human
-                path_to_human = self.pathfinder.find_path(robot_pos, human_pos)
-                
-                # Path from human to nearest exit
-                exit_result = self.pathfinder.find_nearest_exit(human_pos)
-                
-                if path_to_human and exit_result:
-                    exit_pos, path_to_exit = exit_result
-                    
-                    assignments[robot_id] = {
-                        'target_human': human_id,
-                        'human_position': human_pos,
-                        'path_to_human': path_to_human,
-                        'exit_position': exit_pos,
-                        'path_to_exit': path_to_exit,
-                        'total_distance': len(path_to_human) + len(path_to_exit)
-                    }
-                    
-                    self.human_assignments[human_id] = robot_id
-                    self.robot_paths[robot_id] = path_to_human + path_to_exit[1:]
-        
-        return assignments
-    
-    def find_nearest_human(self, robot_pos: Tuple[int, int]) -> Optional[Tuple[str, Tuple[int, int]]]:
-        """Find nearest unassigned human"""
-        min_distance = float('inf')
-        nearest = None
+        evacuation_plans = {}
         
         for human_id, human_pos in self.maze.humans.items():
-            if human_id in self.human_assignments:
-                continue
+            # Find nearest exit and path
+            exit_result = self.pathfinder.find_nearest_exit(human_pos)
             
-            distance = self.pathfinder.heuristic(robot_pos, human_pos)
-            if distance < min_distance:
-                min_distance = distance
-                nearest = (human_id, human_pos)
+            if exit_result:
+                exit_pos, path_to_exit = exit_result
+                
+                evacuation_plans[human_id] = {
+                    'human_id': human_id,
+                    'current_position': human_pos,
+                    'exit_position': exit_pos,
+                    'evacuation_path': path_to_exit,
+                    'distance_to_exit': len(path_to_exit),
+                    'status': 'path_calculated'
+                }
+                
+                self.human_evacuation_paths[human_id] = {
+                    'path': path_to_exit,
+                    'exit': exit_pos,
+                    'distance': len(path_to_exit)
+                }
+            else:
+                evacuation_plans[human_id] = {
+                    'human_id': human_id,
+                    'current_position': human_pos,
+                    'status': 'no_path_available',
+                    'evacuation_path': [],
+                    'distance_to_exit': None
+                }
         
-        return nearest
+        return evacuation_plans
     
-    def handle_blocked_path(self, robot_id: str, blocked_pos: Tuple[int, int]):
-        """Handle blocked path and recalculate route"""
-        self.maze.block_path(*blocked_pos)
+    def robot_detected_human(self, robot_id: str, human_id: str, position: Tuple[int, int]):
+        """
+        Called when a robot detects a human
+        Records the detection and updates human position if needed
+        """
+        self.detected_humans.add(human_id)
         
-        # Recalculate path for affected robot
-        if robot_id in self.robot_paths:
-            robot_pos = self.maze.robots[robot_id]
-            
-            # Find which human this robot is assigned to
-            assigned_human = None
-            for human_id, assigned_robot in self.human_assignments.items():
-                if assigned_robot == robot_id:
-                    assigned_human = human_id
-                    break
-            
-            if assigned_human:
-                human_pos = self.maze.humans[assigned_human]
-                
-                # Recalculate path
-                new_path_to_human = self.pathfinder.find_path(robot_pos, human_pos)
-                exit_result = self.pathfinder.find_nearest_exit(human_pos)
-                
-                if new_path_to_human and exit_result:
-                    exit_pos, path_to_exit = exit_result
-                    self.robot_paths[robot_id] = new_path_to_human + path_to_exit[1:]
-                    return True
+        # Update human position in maze
+        self.maze.add_human(human_id, *position)
         
-        return False
+        # Recalculate evacuation path for this human
+        exit_result = self.pathfinder.find_nearest_exit(position)
+        if exit_result:
+            exit_pos, path_to_exit = exit_result
+            self.human_evacuation_paths[human_id] = {
+                'path': path_to_exit,
+                'exit': exit_pos,
+                'distance': len(path_to_exit)
+            }
+        
+        return True
+    
+    def robot_detected_obstacle(self, robot_id: str, obstacle_pos: Tuple[int, int]) -> Dict:
+        """
+        Called when robot detects a wall/obstacle (NOT a human)
+        Adds obstacle to maze and recalculates ALL affected evacuation paths
+        Returns dict of recalculated paths
+        """
+        # Add obstacle to maze
+        self.maze.block_path(*obstacle_pos)
+        
+        # Recalculate evacuation paths for ALL humans
+        recalculated_paths = {}
+        
+        for human_id, human_pos in self.maze.humans.items():
+            # Get new path to nearest exit
+            exit_result = self.pathfinder.find_nearest_exit(human_pos)
+            
+            if exit_result:
+                exit_pos, new_path = exit_result
+                
+                # Check if path changed
+                old_path = self.human_evacuation_paths.get(human_id, {}).get('path', [])
+                path_changed = (new_path != old_path)
+                
+                if path_changed:
+                    self.human_evacuation_paths[human_id] = {
+                        'path': new_path,
+                        'exit': exit_pos,
+                        'distance': len(new_path)
+                    }
+                    
+                    recalculated_paths[human_id] = {
+                        'new_path': new_path,
+                        'new_exit': exit_pos,
+                        'new_distance': len(new_path),
+                        'path_changed': True
+                    }
+            else:
+                # No path available anymore
+                recalculated_paths[human_id] = {
+                    'new_path': [],
+                    'path_changed': True,
+                    'status': 'blocked'
+                }
+        
+        return {
+            'obstacle_added': obstacle_pos,
+            'affected_humans': recalculated_paths,
+            'total_obstacles': len(self.maze.obstacles) + len(self.maze.blocked_paths)
+        }
+    
+    def update_robot_exploration(self, robot_id: str, position: Tuple[int, int]):
+        """Track robot's explored area"""
+        if robot_id not in self.robot_explored_areas:
+            self.robot_explored_areas[robot_id] = []
+        
+        if position not in self.robot_explored_areas[robot_id]:
+            self.robot_explored_areas[robot_id].append(position)
+        
+        # Update robot position in maze
+        self.maze.add_robot(robot_id, *position)
     
     def get_evacuation_status(self) -> Dict:
         """Get current evacuation status"""
         return {
             'total_robots': len(self.maze.robots),
             'total_humans': len(self.maze.humans),
-            'assigned_humans': len(self.human_assignments),
-            'robot_paths': {
-                robot_id: {
-                    'current_position': self.maze.robots[robot_id],
-                    'path': path,
-                    'path_length': len(path)
-                }
-                for robot_id, path in self.robot_paths.items()
+            'detected_humans': len(self.detected_humans),
+            'humans_with_paths': len(self.human_evacuation_paths),
+            'robot_explored_areas': {
+                robot_id: len(positions) 
+                for robot_id, positions in self.robot_explored_areas.items()
             },
+            'human_evacuation_paths': {
+                human_id: {
+                    'distance': data['distance'],
+                    'exit': data['exit'],
+                    'path_length': len(data['path'])
+                }
+                for human_id, data in self.human_evacuation_paths.items()
+            },
+            'total_obstacles': len(self.maze.obstacles) + len(self.maze.blocked_paths),
             'blocked_paths': list(self.maze.blocked_paths)
         }
 
 
 if __name__ == "__main__":
-    # Test the pathfinding system
+    # Test the dynamic pathfinding system
+    print("=" * 60)
+    print("DYNAMIC EVACUATION PATHFINDING TEST")
+    print("=" * 60)
+    
     maze = MazeGrid(8)
     
-    # Add obstacles
+    # Add static obstacles
     maze.add_obstacle(2, 2)
     maze.add_obstacle(2, 3)
     maze.add_obstacle(3, 2)
@@ -324,29 +376,76 @@ if __name__ == "__main__":
     maze.add_exit(7, 7)
     maze.add_exit(0, 7)
     
-    # Add robots
-    maze.add_robot("robot_1", 0, 0)
-    maze.add_robot("robot_2", 7, 0)
+    # Add robots (they explore independently)
+    maze.add_robot("scout_1", 0, 0)
+    maze.add_robot("scout_2", 7, 0)
     
-    # Add humans
+    # Add humans (already known or detected by robots)
     maze.add_human("human_1", 4, 4)
     maze.add_human("human_2", 5, 3)
     
     # Create coordinator
     coordinator = EvacuationCoordinator(maze)
     
-    # Assign rescue paths
-    assignments = coordinator.assign_rescue_paths()
+    # Calculate evacuation paths for all humans
+    print("\n1. Initial Evacuation Paths:")
+    print("-" * 60)
+    evacuation_plans = coordinator.calculate_evacuation_paths()
+    for human_id, plan in evacuation_plans.items():
+        print(f"\n{human_id}:")
+        print(f"  Position: {plan['current_position']}")
+        print(f"  Exit: {plan['exit_position']}")
+        print(f"  Distance: {plan['distance_to_exit']} steps")
+        print(f"  Path: {plan['evacuation_path'][:3]}... (showing first 3)")
     
-    print("Evacuation Assignments:")
-    for robot_id, assignment in assignments.items():
-        print(f"\n{robot_id}:")
-        print(f"  Target: {assignment['target_human']}")
-        print(f"  Path to human: {assignment['path_to_human']}")
-        print(f"  Exit: {assignment['exit_position']}")
-        print(f"  Total distance: {assignment['total_distance']}")
+    # Simulate robot exploration
+    print("\n\n2. Robot Exploration:")
+    print("-" * 60)
+    coordinator.update_robot_exploration("scout_1", (1, 1))
+    coordinator.update_robot_exploration("scout_1", (2, 1))
+    print("✓ Scout 1 explored: (1,1) → (2,1)")
     
-    print("\n\nEvacuation Status:")
+    coordinator.update_robot_exploration("scout_2", (6, 1))
+    coordinator.update_robot_exploration("scout_2", (5, 2))
+    print("✓ Scout 2 explored: (6,1) → (5,2)")
+    
+    # Simulate robot detecting a human
+    print("\n\n3. Robot Detects Human:")
+    print("-" * 60)
+    coordinator.robot_detected_human("scout_1", "human_3", (6, 6))
+    print("✓ Scout 1 detected human_3 at (6, 6)")
+    print("  → Evacuation path automatically calculated")
+    
+    # Simulate robot detecting obstacle - triggers path recalculation
+    print("\n\n4. Dynamic Obstacle Detection:")
+    print("-" * 60)
+    print("Scout 2 detects obstacle at (5, 5)")
+    result = coordinator.robot_detected_obstacle("scout_2", (5, 5))
+    print(f"✓ Obstacle added at {result['obstacle_added']}")
+    print(f"✓ Total obstacles: {result['total_obstacles']}")
+    print(f"✓ Affected humans: {len(result['affected_humans'])}")
+    
+    for human_id, changes in result['affected_humans'].items():
+        if changes.get('path_changed'):
+            print(f"\n  {human_id}:")
+            print(f"    New path length: {changes.get('new_distance', 'N/A')}")
+            print(f"    New exit: {changes.get('new_exit', 'N/A')}")
+    
+    # Show final evacuation status
+    print("\n\n5. Final Evacuation Status:")
+    print("-" * 60)
     status = coordinator.get_evacuation_status()
-    print(status)
+    print(f"Total Robots: {status['total_robots']}")
+    print(f"Total Humans: {status['total_humans']}")
+    print(f"Detected Humans: {status['detected_humans']}")
+    print(f"Humans with Paths: {status['humans_with_paths']}")
+    print(f"Total Obstacles: {status['total_obstacles']}")
+    
+    print("\nRobot Exploration Progress:")
+    for robot_id, cells_explored in status['robot_explored_areas'].items():
+        print(f"  {robot_id}: {cells_explored} cells explored")
+    
+    print("\n" + "=" * 60)
+    print("✓ Test Complete - Dynamic pathfinding working!")
+    print("=" * 60)
 
