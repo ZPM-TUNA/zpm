@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-
 import 'login.dart';
 import 'settings.dart';
 import 'about.dart';
+import 'map_screen.dart';
 
 class MainMenu extends StatefulWidget {
   const MainMenu({super.key});
@@ -292,14 +292,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
-class MapScreen extends StatelessWidget {
-  const MapScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(child: Text('Map view — floor plan and live robot positions'));
-  }
-}
+// MapScreen has been moved to `map_screen.dart`.
 
 class Robot {
   Robot({required this.id, required this.name, required this.battery, required this.online});
