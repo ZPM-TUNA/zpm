@@ -102,15 +102,161 @@ class _MainMenuState extends State<MainMenu> {
 }
 
 // Placeholder pages for the main menu sections. Replace with real implementations.
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
   @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  List<Map<String, Object>> _alerts = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _generateAlerts();
+  }
+
+  void _generateAlerts() {
+    // Sample robot state (mirror of RobotsScreen's mock data).
+    final robots = [
+      {'id': 'r1', 'name': 'EVA-1', 'battery': 92, 'online': true},
+      {'id': 'r2', 'name': 'Scout-2', 'battery': 58, 'online': true},
+      {'id': 'r3', 'name': 'Helper-3', 'battery': 14, 'online': false},
+    ];
+
+    final now = DateTime.now();
+    final List<Map<String, Object>> alerts = [];
+
+    for (final r in robots) {
+      final name = r['name'] as String;
+      final battery = r['battery'] as int;
+      final online = r['online'] as bool;
+
+      if (!online) {
+        alerts.add({
+          'title': '$name is offline',
+          'severity': 'high',
+          'time': now.subtract(const Duration(minutes: 5)),
+          'tab': 2,
+        });
+      }
+
+      if (battery < 20) {
+        alerts.add({
+          'title': '$name battery critically low (${battery}%)',
+          'severity': 'high',
+          'time': now.subtract(const Duration(minutes: 10)),
+          'tab': 2,
+        });
+      } else if (battery < 40) {
+        alerts.add({
+          'title': '$name battery low (${battery}%)',
+          'severity': 'medium',
+          'time': now.subtract(const Duration(minutes: 15)),
+          'tab': 2,
+        });
+      }
+    }
+
+    // Map-related sample alert.
+    alerts.add({
+      'title': 'Robots detected multiple people in Zone C',
+      'severity': 'high',
+      'time': now.subtract(const Duration(minutes: 1)),
+      'tab': 1,
+    });
+
+    setState(() => _alerts = alerts);
+  }
+
+  Color _colorFor(String severity) {
+    switch (severity) {
+      case 'high':
+        return Colors.red;
+      case 'medium':
+        return Colors.orange;
+      default:
+        return Colors.blue;
+    }
+  }
+
+  IconData _iconFor(String severity) {
+    switch (severity) {
+      case 'high':
+        return Icons.error_outline;
+      case 'medium':
+        return Icons.warning_amber_outlined;
+      default:
+        return Icons.info_outline;
+    }
+  }
+
+  String _relativeTime(DateTime t) {
+    final diff = DateTime.now().difference(t);
+    if (diff.inMinutes < 1) return 'just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    return '${diff.inDays}d ago';
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const Center(child: Padding(
-      padding: EdgeInsets.all(16.0),
-      child: Text('Dashboard — quick status, alerts, and recent robot activity.'),
-    ));
+    final menuState = context.findAncestorStateOfType<_MainMenuState>();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Alerts', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              Row(children: [
+                IconButton(
+                  onPressed: _generateAlerts,
+                  icon: const Icon(Icons.refresh),
+                ),
+              ])
+            ],
+          ),
+        ),
+        Expanded(
+          child: _alerts.isEmpty
+              ? const Center(child: Text('No active alerts'))
+              : ListView.builder(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  itemCount: _alerts.length,
+                  itemBuilder: (context, index) {
+                    final a = _alerts[index];
+                    final severity = a['severity'] as String;
+                    final time = a['time'] as DateTime;
+                    final tab = a['tab'] as int;
+                    return Card(
+                      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: _colorFor(severity).withOpacity(0.15),
+                          child: Icon(_iconFor(severity), color: _colorFor(severity)),
+                        ),
+                        title: Text(a['title'] as String),
+                        subtitle: Text(_relativeTime(time)),
+                        trailing: ElevatedButton(
+                          onPressed: () {
+                            // switch to the appropriate tab in the main menu
+                            if (menuState != null) menuState._selectIndex(tab);
+                          },
+                          child: const Text('View'),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
   }
 }
 
