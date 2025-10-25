@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'main_menu.dart';
+import 'forgot_password.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -171,7 +172,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 18),
                 TextButton(
-                  onPressed: () => _showMessage('Forgot password flow (not implemented)'),
+                  onPressed: () {
+                    if (!_loading) {
+                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()));
+                    }
+                  },
                   child: const Text('Forgot password?'),
                 ),
               ],
