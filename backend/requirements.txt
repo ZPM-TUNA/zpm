@@ -1,14 +1,14 @@
-# ZPM-TUNA Evacuation System Requirements
-# Knight Hacks 2025
+# ZeroPanic - Emergency Evacuation System
+# KnightHacks 2025
 
-# Web Framework
+# Core Web Framework
 flask==3.0.0
 flask-cors==4.0.0
 
-# AI & ML
+# AI Integration (Optional - demo works without)
 google-generativeai==0.3.2
 
-# Computer Vision
+# Computer Vision (Optional)
 opencv-python==4.10.0.84
 inference-sdk==0.9.0
 
@@ -16,12 +16,9 @@ inference-sdk==0.9.0
 python-dotenv==1.0.0
 requests==2.31.0
 numpy==2.0.0
-pyserial==3.5  # Arduino/Serial communication
 
-# Audio Processing (Optional)
+# Optional: Voice Generation
 # elevenlabs==0.2.26
 
-# ROS Integration (Optional - install separately)
-# rospy
-# rosbridge-library
-
+# Optional: ROS2 (install separately via apt on Ubuntu)
+# sudo apt install ros-humble-desktop
