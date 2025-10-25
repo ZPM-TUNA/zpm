@@ -25,7 +25,7 @@ class _MainMenuState extends State<MainMenu> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('ZeroPanic — Home')),
+      appBar: AppBar(title: Text(_titleForIndex(_selectedIndex))),
       drawer: Drawer(
         child: SafeArea(
           child: Column(
@@ -98,6 +98,17 @@ class _MainMenuState extends State<MainMenu> {
         type: BottomNavigationBarType.fixed,
       ),
     );
+  }
+
+  String _titleForIndex(int index) {
+    switch (index) {
+      case 1:
+        return 'ZeroPanic — Map';
+      case 2:
+        return 'ZeroPanic — Robots';
+      default:
+        return 'ZeroPanic — Dashboard';
+    }
   }
 }
 
