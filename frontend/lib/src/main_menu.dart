@@ -341,7 +341,7 @@ class _RobotsScreenState extends State<RobotsScreen> {
         title: Text(robot.name),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+              children: [
             const SizedBox(height: 6),
             LinearProgressIndicator(
               value: robot.battery / 100.0,
@@ -357,9 +357,9 @@ class _RobotsScreenState extends State<RobotsScreen> {
           robot.online ? 'On' : 'Off',
           style: TextStyle(
             color: robot.online ? Colors.green : Colors.red,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
         onTap: () {
           // Expand to details or open controls later
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${robot.name} selected')));
