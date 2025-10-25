@@ -177,7 +177,8 @@ class _MapScreenState extends State<MapScreen> {
               width: size,
               height: size,
               decoration: BoxDecoration(
-                border: Border.all(color: theme.colorScheme.onSurface.withOpacity(0.08)),
+                // slightly stronger outer border to improve visibility in both light/dark
+                border: Border.all(color: theme.colorScheme.onSurface.withOpacity(0.12)),
                 borderRadius: BorderRadius.circular(6),
                 color: theme.colorScheme.surface,
               ),
@@ -192,9 +193,11 @@ class _MapScreenState extends State<MapScreen> {
                       final isUser = index == userIndex;
                       final isPerson = peopleIndices.contains(index);
 
+                      // non-bold grid lines: slightly increased opacity for better visibility
+                      final gridLineColor = theme.colorScheme.onSurface.withOpacity(0.12);
                       return Container(
                         decoration: BoxDecoration(
-                          border: Border.all(color: theme.colorScheme.onSurface.withOpacity(0.06)),
+                          border: Border.all(color: gridLineColor),
                         ),
                         child: Center(
                           child: isUser

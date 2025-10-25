@@ -13,6 +13,7 @@ class MainMenu extends StatefulWidget {
 
 class _MainMenuState extends State<MainMenu> {
   int _selectedIndex = 0;
+  bool _drawerOpen = false;
 
   static const List<Widget> _pages = <Widget>[
     DashboardScreen(),
@@ -28,6 +29,7 @@ class _MainMenuState extends State<MainMenu> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      onDrawerChanged: (isOpened) => setState(() => _drawerOpen = isOpened),
       appBar: AppBar(title: const Text('ZeroPanic — Home')),
       drawer: Drawer(
         child: SafeArea(
@@ -44,7 +46,7 @@ class _MainMenuState extends State<MainMenu> {
                     // Keep a small colored avatar for branding, but remove the stripe
                     CircleAvatar(
                       radius: 26,
-                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      backgroundColor: _drawerOpen ? const Color(0xFFFF7043) : Theme.of(context).colorScheme.primary,
                       child: Icon(Icons.shield, color: Theme.of(context).colorScheme.onPrimary, size: 28),
                     ),
                     const SizedBox(height: 12),
@@ -68,19 +70,19 @@ class _MainMenuState extends State<MainMenu> {
                 ),
               ),
               ListTile(
-                leading: const Icon(Icons.dashboard),
+                leading: Icon(Icons.dashboard, color: _selectedIndex == 0 ? const Color(0xFFFF7043) : Colors.grey[600]),
                 title: const Text('Dashboard'),
                 selected: _selectedIndex == 0,
                 onTap: () => _selectIndex(0),
               ),
               ListTile(
-                leading: const Icon(Icons.map),
+                leading: Icon(Icons.map, color: _selectedIndex == 1 ? const Color(0xFFFF7043) : Colors.grey[600]),
                 title: const Text('Map'),
                 selected: _selectedIndex == 1,
                 onTap: () => _selectIndex(1),
               ),
               ListTile(
-                leading: const Icon(Icons.smart_toy),
+                leading: Icon(Icons.smart_toy, color: _selectedIndex == 2 ? const Color(0xFFFF7043) : Colors.grey[600]),
                 title: const Text('Robots'),
                 selected: _selectedIndex == 2,
                 onTap: () => _selectIndex(2),
@@ -88,7 +90,7 @@ class _MainMenuState extends State<MainMenu> {
               const Spacer(),
               const Divider(),
               ListTile(
-                leading: const Icon(Icons.settings),
+                leading: Icon(Icons.settings, color: Colors.grey[600]),
                 title: const Text('Settings'),
                 onTap: () {
                   Navigator.of(context).pop();
@@ -96,7 +98,7 @@ class _MainMenuState extends State<MainMenu> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.info_outline),
+                leading: Icon(Icons.info_outline, color: Colors.grey[600]),
                 title: const Text('About'),
                 onTap: () {
                   Navigator.of(context).pop();
@@ -104,7 +106,7 @@ class _MainMenuState extends State<MainMenu> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.logout),
+                leading: Icon(Icons.logout, color: Colors.grey[600]),
                 title: const Text('Sign out'),
                 onTap: () {
                   // Clear navigation stack and go back to LoginScreen
