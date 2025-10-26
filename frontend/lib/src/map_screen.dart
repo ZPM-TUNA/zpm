@@ -1,5 +1,11 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
 import 'dart:math';
+
+import 'package:flutter/material.dart';
+
+// This file implements the GUI-only simulation port of backend/simulation.py.
+// It intentionally replaces the old maze-based map with walls that occupy
+// entire grid squares and runs a stepwise simulation with two robots.
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -11,226 +17,276 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> {
   static const int gridSize = 8;
 
-  // sample positions and walls; replace with live data later
-  int userIndex = 3 * gridSize + 4;
-  final Set<int> peopleIndices = {10, 22, 55};
+  static const List<List<int>> simMaze = [
+    [0, 0, 1, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 1, 0, 0, 0],
+    [0, 1, 0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 1, 0],
+    [0, 0, 0, 0, 0, 0, 1, 0],
+    [0, 0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 1, 1, 1, 0, 0],
+  ];
 
-  late final List<List<bool>> hWalls; // (gridSize+1) x gridSize
-  late final List<List<bool>> vWalls; // gridSize x (gridSize+1)
-  List<int> pathToExit = [];
+  final Set<int> blockedCells = {};
+  final Set<int> randomObstacles = {};
+
+  late List<SimRobot> robots;
+  final Point<int> goal = const Point(0, 0);
+
+  Timer? _simTimer;
 
   @override
   void initState() {
     super.initState();
-    // initialize all walls closed, then carve a maze
-    hWalls = List.generate(gridSize + 1, (_) => List.filled(gridSize, true));
-    vWalls = List.generate(gridSize, (_) => List.filled(gridSize + 1, true));
-    _generateMaze();
+    _initSimulation();
   }
 
-  void _generateMaze() {
+  @override
+  void dispose() {
+    _simTimer?.cancel();
+    super.dispose();
+  }
+
+  void _initSimulation() {
+    blockedCells.clear();
+    for (var r = 0; r < gridSize; r++) {
+      for (var c = 0; c < gridSize; c++) {
+        if (simMaze[r][c] == 1) blockedCells.add(r * gridSize + c);
+      }
+    }
+
+    _generateRandomObstacles(5);
+
+    final redStart = Point(7, 0);
+    final blueStart = Point(0, 7);
+
+    robots = [
+      SimRobot(id: 1, pos: redStart, goal: goal, color: Colors.red),
+      SimRobot(id: 2, pos: blueStart, goal: goal, color: Colors.blue),
+    ];
+
+    for (final r in robots) {
+      final p = _astarPath(r.pos, r.goal, blockedCells);
+      if (p.isNotEmpty) r.path = p;
+      else r.finished = true;
+    }
+
+    setState(() {});
+  }
+
+  void _generateRandomObstacles(int num) {
+    randomObstacles.clear();
+    final forbidden = <int>{};
+    forbidden.addAll([7 * gridSize + 0, 0 * gridSize + 7, goal.x * gridSize + goal.y]);
+    forbidden.addAll(blockedCells);
+
     final rnd = Random();
-    final visited = List.generate(gridSize, (_) => List.filled(gridSize, false));
-    final stack = <List<int>>[];
-
-    final sr = rnd.nextInt(gridSize);
-    final sc = rnd.nextInt(gridSize);
-    visited[sr][sc] = true;
-    stack.add([sr, sc]);
-
-    while (stack.isNotEmpty) {
-      final cell = stack.last;
-      final r = cell[0];
-      final c = cell[1];
-      final neighbors = <List<int>>[];
-      if (r > 0 && !visited[r - 1][c]) neighbors.add([r - 1, c]);
-      if (r < gridSize - 1 && !visited[r + 1][c]) neighbors.add([r + 1, c]);
-      if (c > 0 && !visited[r][c - 1]) neighbors.add([r, c - 1]);
-      if (c < gridSize - 1 && !visited[r][c + 1]) neighbors.add([r, c + 1]);
-
-      if (neighbors.isNotEmpty) {
-        final n = neighbors[rnd.nextInt(neighbors.length)];
-        final nr = n[0];
-        final nc = n[1];
-        if (nr == r - 1) {
-          hWalls[r][c] = false;
-        } else if (nr == r + 1) {
-          hWalls[r + 1][c] = false;
-        } else if (nc == c - 1) {
-          vWalls[r][c] = false;
-        } else if (nc == c + 1) {
-          vWalls[r][c + 1] = false;
-        }
-        visited[nr][nc] = true;
-        stack.add([nr, nc]);
-      } else {
-        stack.removeLast();
-      }
+    int attempts = 0;
+    while (randomObstacles.length < num && attempts < 200) {
+      final r = rnd.nextInt(gridSize);
+      final c = rnd.nextInt(gridSize);
+      final idx = r * gridSize + c;
+      if (!forbidden.contains(idx) && !randomObstacles.contains(idx)) randomObstacles.add(idx);
+      attempts++;
     }
-
-    // ensure outer borders remain walls
-    for (var c = 0; c < gridSize; c++) hWalls[0][c] = true;
-    for (var c = 0; c < gridSize; c++) hWalls[gridSize][c] = true;
-    for (var r = 0; r < gridSize; r++) vWalls[r][0] = true;
-    for (var r = 0; r < gridSize; r++) vWalls[r][gridSize] = true;
-
-    // create a few exits by opening some outer walls (top, right, bottom, left)
-    hWalls[0][3] = false; // top exit at column 3
-    vWalls[4][gridSize] = false; // right exit at row 4
-    hWalls[gridSize][1] = false; // bottom exit at column 1
-    vWalls[2][0] = false; // left exit at row 2
-
-    // compute shortest path from user to nearest exit
-    pathToExit = _computePathToNearestExit();
   }
 
-  List<int> _computePathToNearestExit() {
+  List<Point<int>> _astarPath(Point<int> start, Point<int> goal, Set<int> blockedSet) {
     final int n = gridSize;
-    final startR = userIndex ~/ n;
-    final startC = userIndex % n;
-    final visited = List.generate(n, (_) => List.filled(n, false));
-    final prev = List<int>.filled(n * n, -1);
-    final q = <List<int>>[];
-    visited[startR][startC] = true;
-    q.add([startR, startC]);
+    final int startIdx = start.x * n + start.y;
+    final int goalIdx = goal.x * n + goal.y;
+    if (startIdx == goalIdx) return [start];
 
-    int foundR = -1, foundC = -1;
+    int idxOf(int r, int c) => r * n + c;
 
-    bool isExitCell(int r, int c) {
-      // top
-      if (r == 0 && hWalls[0][c] == false) return true;
-      // bottom
-      if (r == n - 1 && hWalls[n][c] == false) return true;
-      // left
-      if (c == 0 && vWalls[r][0] == false) return true;
-      // right
-      if (c == n - 1 && vWalls[r][n] == false) return true;
-      return false;
-    }
+    final openSet = <int>{startIdx};
+    final cameFrom = <int, int>{};
 
-    int idx(int r, int c) => r * n + c;
+    final gScore = List<double>.filled(n * n, double.infinity);
+    final fScore = List<double>.filled(n * n, double.infinity);
 
-    while (q.isNotEmpty) {
-      final cell = q.removeAt(0);
-      final r = cell[0];
-      final c = cell[1];
-      if (isExitCell(r, c)) {
-        foundR = r;
-        foundC = c;
-        break;
+    gScore[startIdx] = 0;
+    fScore[startIdx] = _manhattan(startIdx, goalIdx);
+
+    while (openSet.isNotEmpty) {
+      final current = openSet.reduce((a, b) => fScore[a] < fScore[b] ? a : b);
+      if (current == goalIdx) {
+        final path = <Point<int>>[];
+        var cur = current;
+        while (true) {
+          final r = cur ~/ n;
+          final c = cur % n;
+          path.add(Point(r, c));
+          if (!cameFrom.containsKey(cur)) break;
+          cur = cameFrom[cur]!;
+        }
+        return path.reversed.toList();
       }
 
-      // neighbors: up
-      if (r > 0 && !visited[r - 1][c] && hWalls[r][c] == false) {
-        visited[r - 1][c] = true;
-        prev[idx(r - 1, c)] = idx(r, c);
-        q.add([r - 1, c]);
-      }
-      // down
-      if (r < n - 1 && !visited[r + 1][c] && hWalls[r + 1][c] == false) {
-        visited[r + 1][c] = true;
-        prev[idx(r + 1, c)] = idx(r, c);
-        q.add([r + 1, c]);
-      }
-      // left
-      if (c > 0 && !visited[r][c - 1] && vWalls[r][c] == false) {
-        visited[r][c - 1] = true;
-        prev[idx(r, c - 1)] = idx(r, c);
-        q.add([r, c - 1]);
-      }
-      // right
-      if (c < n - 1 && !visited[r][c + 1] && vWalls[r][c + 1] == false) {
-        visited[r][c + 1] = true;
-        prev[idx(r, c + 1)] = idx(r, c);
-        q.add([r, c + 1]);
+      openSet.remove(current);
+      final cr = current ~/ n;
+      final cc = current % n;
+
+      final neighbors = <int>[];
+      if (cr > 0) neighbors.add(idxOf(cr - 1, cc));
+      if (cr < n - 1) neighbors.add(idxOf(cr + 1, cc));
+      if (cc > 0) neighbors.add(idxOf(cr, cc - 1));
+      if (cc < n - 1) neighbors.add(idxOf(cr, cc + 1));
+
+      for (final neigh in neighbors) {
+        if (blockedSet.contains(neigh)) continue;
+        final tentativeG = gScore[current] + 1;
+        if (tentativeG < gScore[neigh]) {
+          cameFrom[neigh] = current;
+          gScore[neigh] = tentativeG;
+          fScore[neigh] = tentativeG + _manhattan(neigh, goalIdx);
+          openSet.add(neigh);
+        }
       }
     }
+    return [];
+  }
 
-    if (foundR == -1) return [];
-    // reconstruct
-    final path = <int>[];
-    var cur = idx(foundR, foundC);
-    final startIdx = idx(startR, startC);
-    while (cur != -1) {
-      path.add(cur);
-      if (cur == startIdx) break;
-      cur = prev[cur];
+  double _manhattan(int a, int b) {
+    final ar = a ~/ gridSize;
+    final ac = a % gridSize;
+    final br = b ~/ gridSize;
+    final bc = b % gridSize;
+    return (ar - br).abs().toDouble() + (ac - bc).abs().toDouble();
+  }
+
+  void _startSimulation() {
+    if (_simTimer != null && _simTimer!.isActive) return;
+
+    for (final r in robots) {
+      final p = _astarPath(r.pos, r.goal, blockedCells);
+      if (p.isNotEmpty) {
+        r.path = p;
+        r.finished = false;
+      } else {
+        r.path = [];
+        r.finished = true;
+      }
     }
-    return path.reversed.toList();
+
+    _simTimer = Timer.periodic(const Duration(milliseconds: 500), (_) {
+      _simStep();
+    });
+    setState(() {});
+  }
+
+  void _stopSimulation() {
+    _simTimer?.cancel();
+    _simTimer = null;
+    setState(() {});
+  }
+
+  void _simStep() {
+    for (final robot in robots) {
+      if (!robot.finished) robot.step(randomObstacles, blockedCells, _astarPath);
+    }
+    if (mounted) setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('Map — Floor plan and live robot detections', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+          Text('Simulation — robots discover obstacles and replan', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
           const SizedBox(height: 12),
           LayoutBuilder(builder: (context, constraints) {
             final double maxWidth = constraints.maxWidth;
-            final double size = min(maxWidth, 360.0);
+            final double size = min(maxWidth, 420.0);
 
             return Container(
               width: size,
               height: size,
               decoration: BoxDecoration(
-                // slightly stronger outer border to improve visibility in both light/dark
                 border: Border.all(color: theme.colorScheme.onSurface.withOpacity(0.12)),
                 borderRadius: BorderRadius.circular(6),
                 color: theme.colorScheme.surface,
               ),
               child: Stack(
                 children: [
-                  // grid
                   GridView.builder(
                     physics: const NeverScrollableScrollPhysics(),
+                    padding: EdgeInsets.zero,
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: gridSize),
                     itemCount: gridSize * gridSize,
                     itemBuilder: (ctx, index) {
-                      final isUser = index == userIndex;
-                      final isPerson = peopleIndices.contains(index);
-
-                      // non-bold grid lines: slightly increased opacity for better visibility
-                      final gridLineColor = theme.colorScheme.onSurface.withOpacity(0.12);
+                      final isBlocked = blockedCells.contains(index);
                       return Container(
                         decoration: BoxDecoration(
-                          border: Border.all(color: gridLineColor),
-                        ),
-                        child: Center(
-                          child: isUser
-                              ? Container(width: 18, height: 18, decoration: BoxDecoration(color: Colors.blue, shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.blue.withOpacity(0.3), blurRadius: 6)]))
-                              : isPerson
-                                  ? Container(width: 14, height: 14, decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.red.withOpacity(0.25), blurRadius: 4)]))
-                                  : const SizedBox.shrink(),
+                          border: Border.all(color: theme.colorScheme.onSurface.withOpacity(0.06)),
+                          color: isBlocked ? theme.colorScheme.onSurface.withOpacity(0.08) : Colors.transparent,
                         ),
                       );
                     },
                   ),
 
-                  // walls overlay
                   CustomPaint(
                     size: Size(size, size),
-                    painter: _MazePainter(hWalls: hWalls, vWalls: vWalls, color: theme.colorScheme.onSurface),
+                    painter: _SimPainter(blockedCells: blockedCells, randomObstacles: randomObstacles, robots: robots, goal: goal),
                   ),
-                  // path overlay
-                  if (pathToExit.isNotEmpty)
-                    CustomPaint(
-                      size: Size(size, size),
-                      painter: _PathPainter(path: pathToExit, gridSize: gridSize, color: Colors.green),
-                    ),
                 ],
               ),
             );
           }),
 
           const SizedBox(height: 12),
-          Row(mainAxisSize: MainAxisSize.min, children: [
-            Row(children: [Container(width: 12, height: 12, decoration: const BoxDecoration(color: Colors.blue, shape: BoxShape.circle)), const SizedBox(width: 6), const Text('You')]),
-            const SizedBox(width: 16),
-            Row(children: [Container(width: 10, height: 10, decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle)), const SizedBox(width: 6), const Text('Detected people')]),
+
+          Wrap(
+            spacing: 12,
+            runSpacing: 8,
+            alignment: WrapAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  if (_simTimer == null) _startSimulation();
+                  else _stopSimulation();
+                },
+                child: Text(_simTimer == null ? 'Run simulation' : 'Stop simulation'),
+              ),
+
+              ElevatedButton(
+                onPressed: () {
+                  _generateRandomObstacles(5);
+                  for (final r in robots) {
+                    final p = _astarPath(r.pos, r.goal, blockedCells);
+                    if (p.isNotEmpty) r.path = p;
+                  }
+                  setState(() {});
+                },
+                child: const Text('Regenerate obstacles'),
+              ),
+
+              ElevatedButton(
+                onPressed: () {
+                  // stop any running timer and re-initialize the entire simulation
+                  _stopSimulation();
+                  _initSimulation();
+                },
+                child: const Text('Restart'),
+              ),
+
+              Padding(
+                padding: const EdgeInsets.only(left: 4.0, top: 6.0),
+                child: Text(_simTimer == null ? 'Stopped' : 'Running', style: TextStyle(color: _simTimer == null ? Colors.grey : Colors.green, fontWeight: FontWeight.w600)),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          Wrap(spacing: 16, runSpacing: 8, alignment: WrapAlignment.center, children: [
+            Row(mainAxisSize: MainAxisSize.min, children: [Container(width: 12, height: 12, decoration: const BoxDecoration(color: Colors.blue, shape: BoxShape.circle)), const SizedBox(width: 6), const Text('Red robot')]),
+            Row(mainAxisSize: MainAxisSize.min, children: [Container(width: 12, height: 12, decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle)), const SizedBox(width: 6), const Text('Blue robot')]),
+            Row(mainAxisSize: MainAxisSize.min, children: [Container(width: 12, height: 12, decoration: BoxDecoration(color: Colors.green[700], borderRadius: BorderRadius.circular(3))), const SizedBox(width: 6), const Text('Goal')]),
+            Row(mainAxisSize: MainAxisSize.min, children: [Container(width: 12, height: 12, decoration: BoxDecoration(color: Colors.red[700], borderRadius: BorderRadius.circular(3))), const SizedBox(width: 6), const Text('Random obstacle')]),
           ])
         ],
       ),
@@ -238,46 +294,107 @@ class _MapScreenState extends State<MapScreen> {
   }
 }
 
-class _MazePainter extends CustomPainter {
-  _MazePainter({required this.hWalls, required this.vWalls, required this.color});
+class SimRobot {
+  SimRobot({required this.id, required this.pos, required this.goal, required this.color}) {
+    trail = [pos];
+  }
 
-  final List<List<bool>> hWalls;
-  final List<List<bool>> vWalls;
+  final int id;
+  Point<int> pos; // x=row, y=col
+  final Point<int> goal;
+  List<Point<int>> path = [];
+  bool finished = false;
+  late List<Point<int>> trail;
   final Color color;
+  final Set<int> discoveredObstacles = {};
+
+  bool step(Set<int> randomObstacles, Set<int> staticBlocked, List<Point<int>> Function(Point<int>, Point<int>, Set<int>) astar) {
+    if (finished) return false;
+    if (path.isEmpty) return false;
+
+    if (path.length > 1) {
+      final next = path[1];
+      final nextIdx = next.x * _MapScreenState.gridSize + next.y;
+
+      if (randomObstacles.contains(nextIdx)) {
+        discoveredObstacles.add(nextIdx);
+        final blocked = <int>{}..addAll(staticBlocked)..addAll(discoveredObstacles);
+        final newPath = astar(Point(pos.x, pos.y), Point(goal.x, goal.y), blocked);
+        if (newPath.isEmpty) {
+          finished = true;
+          return false;
+        }
+        path = newPath;
+        return true;
+      }
+
+      path.removeAt(0);
+      final movedTo = path[0];
+      pos = Point(movedTo.x, movedTo.y);
+      trail.add(pos);
+      if (pos == goal) finished = true;
+      return true;
+    } else {
+      finished = true;
+      return false;
+    }
+  }
+}
+
+class _SimPainter extends CustomPainter {
+  _SimPainter({required this.blockedCells, required this.randomObstacles, required this.robots, required this.goal});
+
+  final Set<int> blockedCells;
+  final Set<int> randomObstacles;
+  final List<SimRobot> robots;
+  final Point<int> goal;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color.withOpacity(0.95)
-      ..strokeWidth = 8
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.square
-      ..isAntiAlias = true;
+    final cellW = size.width / _MapScreenState.gridSize;
+    final cellH = size.height / _MapScreenState.gridSize;
 
-    final int grid = vWalls.length;
-    final cellW = size.width / grid;
-    final cellH = size.height / grid;
+    final blockedPaint = Paint()..color = Colors.black.withOpacity(0.08);
+    for (final idx in blockedCells) {
+      final r = idx ~/ _MapScreenState.gridSize;
+      final c = idx % _MapScreenState.gridSize;
+      final rect = Rect.fromLTWH(c * cellW, r * cellH, cellW, cellH);
+      canvas.drawRect(rect, blockedPaint);
+    }
 
-    // horizontal walls: hWalls has grid+1 rows
-    for (var r = 0; r < hWalls.length; r++) {
-      for (var c = 0; c < hWalls[r].length; c++) {
-        if (!hWalls[r][c]) continue;
-        final y = r * cellH;
-        final x1 = c * cellW;
-        final x2 = (c + 1) * cellW;
-        canvas.drawLine(Offset(x1, y), Offset(x2, y), paint);
+    final obstaclePaint = Paint()
+      ..color = Colors.red[700]!
+      ..strokeWidth = 2.0
+      ..style = PaintingStyle.stroke;
+
+    for (final idx in randomObstacles) {
+      final r = idx ~/ _MapScreenState.gridSize;
+      final c = idx % _MapScreenState.gridSize;
+      final x1 = c * cellW + cellW * 0.18;
+      final y1 = r * cellH + cellH * 0.18;
+      final x2 = c * cellW + cellW * 0.82;
+      final y2 = r * cellH + cellH * 0.82;
+      canvas.drawLine(Offset(x1, y1), Offset(x2, y2), obstaclePaint);
+      canvas.drawLine(Offset(x1, y2), Offset(x2, y1), obstaclePaint);
+    }
+
+    final goalPaint = Paint()..color = Colors.green[700]!;
+    canvas.drawRect(Rect.fromLTWH(goal.y * cellW + cellW * 0.18, goal.x * cellH + cellH * 0.18, cellW * 0.64, cellH * 0.64), goalPaint);
+
+    for (final robot in robots) {
+      final trailPaint = Paint()..color = robot.color.withOpacity(0.22);
+      for (final p in robot.trail) {
+        final rect = Rect.fromLTWH(p.y * cellW + cellW * 0.06, p.x * cellH + cellH * 0.06, cellW * 0.88, cellH * 0.88);
+        canvas.drawRect(rect, trailPaint);
       }
     }
 
-    // vertical walls
-    for (var r = 0; r < vWalls.length; r++) {
-      for (var c = 0; c < vWalls[r].length; c++) {
-        if (!vWalls[r][c]) continue;
-        final x = c * cellW;
-        final y1 = r * cellH;
-        final y2 = (r + 1) * cellH;
-        canvas.drawLine(Offset(x, y1), Offset(x, y2), paint);
-      }
+    for (final robot in robots) {
+      if (robot.finished) continue;
+      final cx = robot.pos.y * cellW + cellW / 2;
+      final cy = robot.pos.x * cellH + cellH / 2;
+      final paint = Paint()..color = robot.color;
+      canvas.drawCircle(Offset(cx, cy), min(cellW, cellH) * 0.18, paint);
     }
   }
 
@@ -285,44 +402,4 @@ class _MazePainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
 
-class _PathPainter extends CustomPainter {
-  _PathPainter({required this.path, required this.gridSize, required this.color});
 
-  final List<int> path;
-  final int gridSize;
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (path.isEmpty) return;
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 4
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..isAntiAlias = true;
-
-    final cellW = size.width / gridSize;
-    final cellH = size.height / gridSize;
-
-    final pathPoints = path.map((idx) {
-      final r = idx ~/ gridSize;
-      final c = idx % gridSize;
-      return Offset(c * cellW + cellW / 2, r * cellH + cellH / 2);
-    }).toList();
-
-    final pathPainter = Path();
-    pathPainter.moveTo(pathPoints.first.dx, pathPoints.first.dy);
-
-    for (var p in pathPoints.skip(1))  {
-      pathPainter.lineTo(p.dx, p.dy);
-    }
-    
-    canvas.drawPath(pathPainter, paint);
-
-    // path nodes removed (no dots inside squares) - path is shown as a solid line only
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
-}
