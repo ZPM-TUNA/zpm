@@ -12,7 +12,7 @@ import time
 
 # Add parent directory to import simulation
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from simulation import Robot, run_simulation, astar_path, maze, start, goal
+from simulation_robot import MazeSimulation
 
 # Try to import ROS 2, fall back to mock if not available
 try:
@@ -48,8 +48,7 @@ class SimulationPublisherNode:
             self.publish_timer = None
         
         # Simulation state
-        self.robots = []
-        self.maze_grid = None
+        self.simulation = None
         self.simulation_running = False
         self.simulation_finished = False
         
@@ -90,43 +89,30 @@ class SimulationPublisherNode:
         try:
             self.log_info('Starting simulation...')
             
-            # Create robots
-            num_robots = 3
-            self.robots = []
-            for i in range(num_robots):
-                robot = Robot(i + 1, start, goal)
-                
-                # Calculate path using A*
-                path = astar_path(maze, start, goal)
-                if path:
-                    robot.path = path
-                    self.log_info(f'Robot {robot.id}: Path found ({len(path)} steps)')
-                else:
-                    self.log_warn(f'Robot {robot.id}: No path found!')
-                    robot.finished = True
-                
-                self.robots.append(robot)
+            # Create simulation
+            self.simulation = MazeSimulation(8)
+            self.simulation.setup_demo_scenario()
             
             self.simulation_running = True
-            self.log_info('Simulation started - robots moving...')
+            self.log_info('Simulation started - robots exploring...')
             
             # Run simulation step by step
             step_count = 0
-            while any(not robot.finished for robot in self.robots):
+            max_steps = 200  # Limit for demo
+            while step_count < max_steps:
                 step_count += 1
                 
-                for robot in self.robots:
-                    if not robot.finished:
-                        moved = robot.step()
-                        if moved:
-                            self.log_info(f'Robot {robot.id} → {robot.pos}')
-                        elif robot.pos == robot.goal:
-                            self.log_info(f'Robot {robot.id} reached goal at {robot.pos}')
+                # Run simulation step
+                state = self.simulation.run_step()
+                
+                # Log progress periodically
+                if step_count % 10 == 0:
+                    self.log_info(f'Step {step_count}: {state["stats"]["humans_detected"]}/{state["stats"]["total_humans"]} humans detected')
                 
                 # Small delay between steps for visualization
-                time.sleep(0.5)
+                time.sleep(0.1)
             
-            self.log_info(f'Simulation completed in {step_count} steps')
+            self.log_info(f'Simulation completed after {step_count} steps')
             self.simulation_finished = True
             
         except Exception as e:
@@ -135,24 +121,28 @@ class SimulationPublisherNode:
     
     def publish_robot_positions(self):
         """Publish current robot positions to ROS topic"""
-        if not self.simulation_running or not self.robots:
+        if not self.simulation_running or not hasattr(self, 'simulation'):
             return
+        
+        # Get current simulation state
+        state = self.simulation.get_state()
         
         # Create JSON message with robot positions
         robot_data = []
-        for robot in self.robots:
-            robot_info = {
-                'id': robot.id,
-                'x': robot.pos[0],
-                'y': robot.pos[1],
-                'reached': robot.finished
-            }
-            robot_data.append(robot_info)
+        for robot_id, robot_info in state['robots'].items():
+            robot_data.append({
+                'id': robot_id,
+                'x': robot_info['position'][0],
+                'y': robot_info['position'][1],
+                'explored': robot_info['explored']
+            })
         
         # Create message data
         message_data = {
-            'timestamp': time.time(),
+            'timestamp': state['time'],
             'robots': robot_data,
+            'humans': state['humans'],
+            'obstacles': state['obstacles'],
             'simulation_finished': self.simulation_finished
         }
         
@@ -163,13 +153,8 @@ class SimulationPublisherNode:
             self.robot_pos_pub.publish(msg)
         else:
             # Print to console (simulation mode)
-            print(f"[PUBLISH] {json.dumps(message_data, indent=2)}")
-        
-        # Log robot positions
-        if not self.simulation_finished:
-            positions = [f"Robot {r.id}→({r.pos[0]},{r.pos[1]})" for r in self.robots if not r.finished]
-            if positions:
-                self.log_info(f'Published: {", ".join(positions)}')
+            if int(state['time'] * 10) % 10 == 0:  # Print every second
+                print(f"[PUBLISH] Time: {state['time']:.1f}s, Robots: {len(robot_data)}, Humans detected: {state['stats']['humans_detected']}")
     
     def destroy_node(self):
         """Clean shutdown"""

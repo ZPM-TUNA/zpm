@@ -4,6 +4,7 @@ import 'settings.dart';
 import 'about.dart';
 import 'map_screen.dart';
 import 'robots_screen.dart';
+import 'screens/live_evacuation_screen.dart';
 
 class MainMenu extends StatefulWidget {
   const MainMenu({super.key});
@@ -18,7 +19,7 @@ class _MainMenuState extends State<MainMenu> {
 
   static const List<Widget> _pages = <Widget>[
     DashboardScreen(),
-    MapScreen(),
+    LiveEvacuationScreen(),
     RobotsScreen(),
   ];
 
@@ -78,7 +79,7 @@ class _MainMenuState extends State<MainMenu> {
               ),
               ListTile(
                 leading: Icon(Icons.map, color: _selectedIndex == 1 ? const Color(0xFFFF7043) : Colors.grey[600]),
-                title: Text('Map', style: TextStyle(color: _selectedIndex == 1 ? const Color(0xFFFF7043) : null)),
+                title: Text('Live Evacuation', style: TextStyle(color: _selectedIndex == 1 ? const Color(0xFFFF7043) : null)),
                 selected: _selectedIndex == 1,
                 onTap: () => _selectIndex(1),
               ),
@@ -127,7 +128,7 @@ class _MainMenuState extends State<MainMenu> {
         onTap: _selectIndex,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Dashboard'),
-          BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Map'),
+          BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Live'),
           BottomNavigationBarItem(icon: Icon(Icons.smart_toy), label: 'Robots'),
         ],
         type: BottomNavigationBarType.fixed,

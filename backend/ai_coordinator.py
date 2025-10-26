@@ -10,7 +10,7 @@ import requests
 from dotenv import load_dotenv
 from typing import Dict, List, Optional
 from pathfinding import MazeGrid, EvacuationCoordinator
-from simulation import run_simulation
+from simulation_robot import MazeSimulation
 
 # Load environment variables
 load_dotenv()
@@ -408,7 +408,13 @@ class EvacuationAICoordinator:
 if __name__ == "__main__":
     import sys
     if "--simulate" in sys.argv:
-        run_simulation(num_robots=3)
+        # Create and run simulation
+        sim = MazeSimulation(8)
+        sim.setup_demo_scenario()
+        print("\nRunning simulation...")
+        for i in range(50):
+            sim.run_step()
+        print("Simulation complete!")
     else:
         print("Run with --simulate to start the building simulation.")
         print("=" * 60)

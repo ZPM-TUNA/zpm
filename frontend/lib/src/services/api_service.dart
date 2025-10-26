@@ -71,6 +71,42 @@ class ApiService {
     }
   }
 
+  // Get complete state
+  Future<Map<String, dynamic>> getState() async {
+    if (useMockData) {
+      return {
+        'time': 10.5,
+        'maze_size': 8,
+        'robots': {
+          'robot_1': {'position': [2.5, 3.2], 'explored': 15, 'path': []},
+          'robot_2': {'position': [6.1, 1.8], 'explored': 12, 'path': []}
+        },
+        'humans': {
+          'human_1': [4, 4],
+          'human_2': [5, 3]
+        },
+        'obstacles': [[2, 2], [2, 3], [5, 5]],
+        'exits': [[0, 7], [7, 7]],
+        'evacuation_plans': {},
+        'stats': {
+          'humans_detected': 2,
+          'obstacles_detected': 3,
+          'total_humans': 3
+        }
+      };
+    }
+    
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/api/state'));
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      }
+      throw Exception('Failed to get state');
+    } catch (e) {
+      throw Exception('Error fetching state: $e');
+    }
+  }
+
   // Get Flutter update (complete state)
   Future<Map<String, dynamic>> getFlutterUpdate() async {
     if (useMockData) {
@@ -131,13 +167,108 @@ class ApiService {
     }
     
     try {
-      final response = await http.get(Uri.parse('$baseUrl/api/flutter/update'));
+      final response = await http.get(Uri.parse('$baseUrl/api/flutter-update'));
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
       throw Exception('Failed to get Flutter update');
     } catch (e) {
       throw Exception('Error fetching update: $e');
+    }
+  }
+
+  // Get AI guidance
+  Future<Map<String, dynamic>> getAIGuidance() async {
+    if (useMockData) {
+      return {
+        'guidance': 'All evacuation paths calculated. Robots are guiding humans to nearest exits.',
+        'timestamp': DateTime.now().millisecondsSinceEpoch / 1000
+      };
+    }
+    
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/api/ai-guidance'));
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      }
+      throw Exception('Failed to get AI guidance');
+    } catch (e) {
+      throw Exception('Error fetching AI guidance: $e');
+    }
+  }
+
+  // Control: Start simulation
+  Future<Map<String, dynamic>> startSimulation() async {
+    if (useMockData) {
+      return {'success': true, 'message': 'Simulation started'};
+    }
+    
+    try {
+      final response = await http.post(Uri.parse('$baseUrl/api/control/start'));
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      }
+      throw Exception('Failed to start simulation');
+    } catch (e) {
+      throw Exception('Error starting simulation: $e');
+    }
+  }
+
+  // Control: Stop simulation
+  Future<Map<String, dynamic>> stopSimulation() async {
+    if (useMockData) {
+      return {'success': true, 'message': 'Simulation stopped'};
+    }
+    
+    try {
+      final response = await http.post(Uri.parse('$baseUrl/api/control/stop'));
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      }
+      throw Exception('Failed to stop simulation');
+    } catch (e) {
+      throw Exception('Error stopping simulation: $e');
+    }
+  }
+
+  // Control: Reset simulation
+  Future<Map<String, dynamic>> resetSimulation() async {
+    if (useMockData) {
+      return {'success': true, 'message': 'Simulation reset'};
+    }
+    
+    try {
+      final response = await http.post(Uri.parse('$baseUrl/api/control/reset'));
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      }
+      throw Exception('Failed to reset simulation');
+    } catch (e) {
+      throw Exception('Error resetting simulation: $e');
+    }
+  }
+
+  // Get stats
+  Future<Map<String, dynamic>> getStats() async {
+    if (useMockData) {
+      return {
+        'simulation_time': 45.2,
+        'total_robots': 2,
+        'total_humans': 3,
+        'humans_detected': 2,
+        'humans_with_evacuation_paths': 2,
+        'total_obstacles': 5
+      };
+    }
+    
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/api/stats'));
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      }
+      throw Exception('Failed to get stats');
+    } catch (e) {
+      throw Exception('Error fetching stats: $e');
     }
   }
 
