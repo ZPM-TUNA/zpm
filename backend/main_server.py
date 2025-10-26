@@ -4,14 +4,13 @@ ZeroPanic Main Server - Unified Evacuation System
 Integrates: Simulation + AI + Pathfinding + Detection + Visualization
 """
 
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import threading
 import time
 import os
 import json
 from dotenv import load_dotenv
-from pathlib import Path
 
 # Import our services
 from simulation_robot import MazeSimulation

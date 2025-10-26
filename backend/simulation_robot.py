@@ -213,24 +213,5 @@ class MazeSimulation:
         return self.get_state()
 
 
-if __name__ == "__main__":
-    # Test simulation
-    print("="*60)
-    print("MAZE SIMULATION TEST")
-    print("="*60)
-    
-    sim = MazeSimulation(8)
-    sim.setup_demo_scenario()
-    
-    print("\nRunning simulation for 10 seconds...")
-    for i in range(100):
-        state = sim.run_step()
-        if i % 10 == 0:
-            print(f"\nTime: {state['time']:.1f}s")
-            print(f"Robots: {len(state['robots'])}")
-            print(f"Humans detected: {state['stats']['humans_detected']}/{state['stats']['total_humans']}")
-            print(f"Obstacles detected: {state['stats']['obstacles_detected']}")
-        time.sleep(0.1)
-    
-    print("\n✓ Simulation test complete!")
+# Test code removed - use main_server.py for running the system
 
