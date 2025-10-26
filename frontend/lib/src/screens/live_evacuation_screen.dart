@@ -242,28 +242,45 @@ class _LiveEvacuationScreenState extends State<LiveEvacuationScreen> {
       });
     });
 
-    Color cellColor = Colors.grey[100]!;
+    Color cellColor = Colors.white;
     Widget? icon;
+    Color? borderColor;
 
     if (isObstacle) {
-      cellColor = Colors.grey[800]!;
+      // Obstacles are BLACK
+      cellColor = Colors.black;
     } else if (isExit) {
-      cellColor = Colors.green;
-      icon = const Icon(Icons.exit_to_app, color: Colors.white, size: 16);
-    } else if (robotAtPos.isNotEmpty) {
-      cellColor = Colors.blue;
-      icon = const Icon(Icons.smart_toy, color: Colors.white, size: 16);
-    } else if (humanAtPos.isNotEmpty) {
-      cellColor = Colors.red;
-      icon = const Icon(Icons.person, color: Colors.white, size: 16);
+      // Exit is BRIGHT GREEN with icon
+      cellColor = Colors.green[600]!;
+      icon = const Icon(Icons.exit_to_app, color: Colors.white, size: 20);
     } else if (isOnEvacuationPath) {
-      cellColor = Colors.orange[200]!;
+      // Evacuation path is BRIGHT GREEN (before robots/humans overlay)
+      cellColor = Colors.green[300]!;
+    } else {
+      // Empty cells are white
+      cellColor = Colors.white;
+    }
+    
+    // Overlay robots and humans on top
+    if (robotAtPos.isNotEmpty) {
+      // Robots are RED with robot icon
+      icon = const Icon(Icons.smart_toy, color: Colors.red, size: 24);
+    } else if (humanAtPos.isNotEmpty) {
+      // Humans are BLUE DOT
+      icon = Container(
+        width: 16,
+        height: 16,
+        decoration: const BoxDecoration(
+          color: Colors.blue,
+          shape: BoxShape.circle,
+        ),
+      );
     }
 
     return Container(
       decoration: BoxDecoration(
         color: cellColor,
-        border: Border.all(color: Colors.grey[300]!, width: 0.5),
+        border: Border.all(color: Colors.grey[400]!, width: 1),
       ),
       child: Center(child: icon),
     );
