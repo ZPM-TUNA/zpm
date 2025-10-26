@@ -85,11 +85,11 @@ This starts the main evacuation server on port 5001 with:
 
 This launches the Flutter app in your browser showing live evacuation status.
 
-**That's it! 🎉** You'll see robots exploring, detecting humans, and calculating evacuation routes in real-time.
+**That's it! ** You'll see robots exploring, detecting humans, and calculating evacuation routes in real-time.
 
 ---
 
-## 📊 System Architecture
+##  System Architecture
 
 ```
 ┌──────────────────────────────────────────────────────────┐
@@ -134,7 +134,7 @@ This launches the Flutter app in your browser showing live evacuation status.
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 ZeroPanic/
@@ -229,7 +229,7 @@ def find_nearest_exit(human_pos):
 
 ---
 
-## 🔌 API Endpoints
+##  API Endpoints
 
 ### Main Endpoints for Flutter
 
@@ -434,7 +434,7 @@ DEFAULT_MAZE_SIZE=8
 SIMULATION_SPEED=1.0
 ```
 
-### Customize Simulation
+### Customise Simulation
 
 Edit `backend/simulation_robot.py`:
 
