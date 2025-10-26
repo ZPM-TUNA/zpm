@@ -89,6 +89,10 @@ class MazeSimulation:
         self.time = 0.0
         self.running = False
         
+        # Create pathfinder for robot navigation
+        from pathfinding import AStarPathfinder
+        self.pathfinder = AStarPathfinder(self.maze)
+        
         # Statistics
         self.humans_detected = set()
         self.obstacles_detected = set()
@@ -108,11 +112,9 @@ class MazeSimulation:
             if (x, y) not in [(0, 7), (7, 7)]:
                 self.maze.add_obstacle(x, y)
         
-        # Add humans in random positions
+        # Add ONE human in random position
         human_positions = [
-            (random.randint(1, 6), random.randint(1, 6)),
-            (random.randint(1, 6), random.randint(1, 6)),
-            (random.randint(1, 6), random.randint(1, 6))
+            (random.randint(2, 5), random.randint(2, 5))
         ]
         
         for i, pos in enumerate(human_positions):
@@ -156,28 +158,55 @@ class MazeSimulation:
             self.update_robot_exploration(robot_id)
     
     def update_robot_exploration(self, robot_id: str):
-        """Update robot's exploration and movement"""
+        """Update robot's exploration and movement with pathfinding"""
         robot = self.robots.get(robot_id)
         if not robot:
             return
-            
-        # Simple exploration pattern if no specific task
-        if not robot.path or random.random() < 0.05:
-            # Pick random valid position to explore
-            target_x = random.randint(0, self.maze.size - 1)
-            target_y = random.randint(0, self.maze.size - 1)
-            
-            if (target_x, target_y) not in self.maze.obstacles:
-                robot.path = [(target_x, target_y)]
         
-        # Move along path
+        # Get current grid position
+        current_x, current_y = int(round(robot.position[0])), int(round(robot.position[1]))
+        
+        # If no path or reached end, pick new exploration target
+        if not robot.path or random.random() < 0.03:
+            # Find a valid unexplored position
+            attempts = 0
+            while attempts < 20:
+                target_x = random.randint(0, self.maze.size - 1)
+                target_y = random.randint(0, self.maze.size - 1)
+                
+                # Check if target is valid (not obstacle, not blocked path)
+                all_obstacles = self.maze.obstacles.union(self.maze.blocked_paths)
+                if (target_x, target_y) not in all_obstacles:
+                    # Use A* to find path from current position to target
+                    path = self.pathfinder.find_path(
+                        (current_x, current_y),
+                        (target_x, target_y)
+                    )
+                    
+                    if path and len(path) > 1:
+                        # Set new path (skip first point as it's current position)
+                        robot.path = path[1:]
+                        print(f"[{robot_id}] New path to {(target_x, target_y)}: {len(robot.path)} steps")
+                        break
+                
+                attempts += 1
+        
+        # Move along path, but check if next cell is still valid
         if robot.path:
             target = robot.path[0]
+            
+            # Check if target cell is now blocked
+            all_obstacles = self.maze.obstacles.union(self.maze.blocked_paths)
+            if target in all_obstacles:
+                print(f"[{robot_id}] Path blocked! Recalculating...")
+                robot.path = []  # Clear path to trigger recalculation
+                return
+            
+            # Move towards target
             if robot.move_to(target, 0.1):
                 robot.path.pop(0)
-                # Update coordinator with robot position (rounded to grid)
-                int_x, int_y = int(round(robot.position[0])), int(round(robot.position[1]))
-                self.coordinator.update_robot_exploration(robot_id, (int_x, int_y))
+                # Update coordinator with robot position
+                self.coordinator.update_robot_exploration(robot_id, (current_x, current_y))
     
     def get_state(self) -> dict:
         """Get current simulation state"""
@@ -190,7 +219,37 @@ class MazeSimulation:
             for robot_id, robot in self.robots.items()
         }
         
-        evacuation_plans = self.coordinator.calculate_evacuation_paths()
+        # ALWAYS calculate evacuation paths for ALL humans (detected or not)
+        evacuation_plans = {}
+        for human_id, human_pos in self.maze.humans.items():
+            # Force evacuation path calculation
+            plans = self.coordinator.calculate_evacuation_paths()
+            if human_id in plans:
+                evacuation_plans[human_id] = plans[human_id]
+            else:
+                # If not in coordinator yet, calculate directly
+                best_path = None
+                best_distance = float('inf')
+                best_exit = None
+                
+                for exit_pos in self.maze.exits:
+                    path = self.pathfinder.find_path(human_pos, exit_pos)
+                    if path:
+                        distance = len(path)
+                        if distance < best_distance:
+                            best_distance = distance
+                            best_path = path
+                            best_exit = exit_pos
+                
+                if best_path:
+                    evacuation_plans[human_id] = {
+                        'human_id': human_id,
+                        'current_position': list(human_pos),
+                        'evacuation_path': [list(p) for p in best_path],
+                        'exit_position': list(best_exit),
+                        'distance_to_exit': best_distance,
+                        'status': 'calculated'
+                    }
         
         return {
             'time': self.time,
@@ -210,7 +269,43 @@ class MazeSimulation:
     def run_step(self):
         """Run one simulation step"""
         self.update(0.1)
+        
+        # Move humans along evacuation paths every 2 seconds
+        if int(self.time * 10) % 20 == 0:
+            self.move_humans_along_paths()
+        
         return self.get_state()
+    
+    def move_humans_along_paths(self):
+        """Move humans one step along their evacuation paths - RECALCULATES PATH EACH STEP"""
+        # Calculate paths BEFORE moving
+        evacuation_plans = self.coordinator.calculate_evacuation_paths()
+        
+        for human_id, plan in evacuation_plans.items():
+            if human_id not in self.maze.humans:
+                continue
+                
+            path = plan.get('evacuation_path', [])
+            if len(path) > 1:
+                # Get current position
+                current_pos = self.maze.humans[human_id]
+                
+                # Find next step in path (path[0] is current, path[1] is next)
+                next_pos = tuple(path[1])
+                
+                # Move human to next position
+                self.maze.humans[human_id] = next_pos
+                print(f"👤 Human {human_id} moved from {current_pos} → {next_pos}")
+                print(f"   Remaining path: {len(path)-2} steps to exit at {plan.get('exit_position')}")
+                
+                # IMMEDIATELY recalculate path after move for next step
+                # This ensures path is always up-to-date with current obstacles
+                
+            elif len(path) == 1:
+                # Human reached exit!
+                exit_pos = tuple(path[0])
+                if exit_pos in self.maze.exits:
+                    print(f"✅ Human {human_id} REACHED EXIT at {exit_pos}!")
 
 
 if __name__ == "__main__":

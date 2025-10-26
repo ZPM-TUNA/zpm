@@ -20,8 +20,14 @@ class GeminiAIAnalyzer:
     """Uses Gemini AI to analyze evacuation scenarios and provide guidance"""
     
     def __init__(self):
-        genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
-        self.model = genai.GenerativeModel('gemini-2.0-flash-exp')
+        api_key = os.getenv('GEMINI_API_KEY')
+        if api_key and api_key != 'your_key_here':
+            genai.configure(api_key=api_key)
+            self.model = genai.GenerativeModel('gemini-2.0-flash-exp')
+            print("✓ Gemini AI initialized")
+        else:
+            self.model = None
+            print("⚠️  Gemini API key not set - using fallback messages")
     
     def analyze_evacuation_scenario(
         self,
@@ -34,6 +40,29 @@ class GeminiAIAnalyzer:
         Analyze the evacuation scenario and provide guidance
         Robots explore independently, not assigned to specific humans
         """
+        # If no API key, return fallback with directions
+        if not self.model:
+            directions = []
+            for human_id in humans_in_danger:
+                if human_id in evacuation_plans:
+                    plan = evacuation_plans[human_id]
+                    path = plan.get('evacuation_path', [])
+                    if len(path) > 1:
+                        current = path[0]
+                        next_step = path[1]
+                        dx = next_step[0] - current[0]
+                        dy = next_step[1] - current[1]
+                        
+                        direction = ""
+                        if dx > 0: direction = "RIGHT"
+                        elif dx < 0: direction = "LEFT"
+                        elif dy > 0: direction = "UP"
+                        elif dy < 0: direction = "DOWN"
+                        
+                        directions.append(f"Move {direction}")
+            
+            return f"EMERGENCY EVACUATION! {len(humans_in_danger)} person(s) detected. {' '.join(directions)}. Follow green path to exit."
+        
         prompt = self._build_analysis_prompt(
             maze_state,
             evacuation_plans,
@@ -41,8 +70,12 @@ class GeminiAIAnalyzer:
             humans_in_danger
         )
         
-        response = self.model.generate_content(prompt)
-        return response.text
+        try:
+            response = self.model.generate_content(prompt)
+            return response.text
+        except Exception as e:
+            print(f"⚠️  Gemini error: {e}")
+            return f"EMERGENCY: {len(humans_in_danger)} person(s) detected. Follow evacuation routes."
     
     def _build_analysis_prompt(
         self,
@@ -53,43 +86,45 @@ class GeminiAIAnalyzer:
     ) -> str:
         """Build detailed prompt for Gemini AI"""
         
-        prompt = f"""You are an AI evacuation coordinator analyzing a critical rescue scenario in an 8x8 maze.
+        # Build simple directions
+        directions_text = []
+        for human_id in humans_in_danger:
+            if human_id in evacuation_plans:
+                plan = evacuation_plans[human_id]
+                path = plan.get('evacuation_path', [])
+                if len(path) > 1:
+                    current = path[0]
+                    next_step = path[1]
+                    exit_pos = plan.get('exit_position', 'unknown')
+                    
+                    # Calculate direction
+                    dx = next_step[0] - current[0]
+                    dy = next_step[1] - current[1]
+                    
+                    direction = ""
+                    if dx > 0: direction = "RIGHT"
+                    elif dx < 0: direction = "LEFT"
+                    elif dy > 0: direction = "UP"
+                    elif dy < 0: direction = "DOWN"
+                    
+                    directions_text.append(f"Person at position {current}: Move {direction} toward exit at {exit_pos}")
+        
+        prompt = f"""EMERGENCY EVACUATION - Give CLEAR, SIMPLE instructions.
 
-**MAZE STATE:**
-- Grid Size: {maze_state['size']}x{maze_state['size']}
-- Obstacles: {len(maze_state['obstacles'])} static obstacles
-- Blocked Paths: {len(maze_state['blocked_paths'])} dynamically discovered hazards
-- Available Exits: {maze_state['exits']}
+{len(humans_in_danger)} person(s) detected in building.
+{len(maze_state['obstacles'])} obstacles blocking paths.
 
-**SCOUT ROBOTS (Exploring independently):**
-{json.dumps(maze_state['robots'], indent=2)}
-Robot Status: Scouts are mapping the area and detecting humans/obstacles dynamically
+DIRECTIONS:
+{chr(10).join(directions_text)}
 
-**HUMANS IN DANGER:**
-Total: {len(maze_state['humans'])}
-Positions: {json.dumps(maze_state['humans'], indent=2)}
-Detected: {evacuation_status['detected_humans']} humans
-Critical Priority: {humans_in_danger}
+Exits available at: {maze_state['exits']}
 
-**EVACUATION PLANS:**
-{json.dumps(evacuation_plans, indent=2)}
+Give a SHORT emergency message (2-3 sentences) with:
+1. Clear directions (say LEFT/RIGHT/UP/DOWN)
+2. Which exit to use
+3. Urgency level (calm but urgent)
 
-**SYSTEM STATUS:**
-- Total Scout Robots: {evacuation_status['total_robots']}
-- Total Humans: {evacuation_status['total_humans']}
-- Humans with Evacuation Paths: {evacuation_status['humans_with_paths']}
-- Total Hazards: {evacuation_status['total_obstacles']}
-- Robot Explored Areas: {evacuation_status.get('robot_explored_areas', {})}
-
-**YOUR TASK:**
-Provide clear, calm evacuation instructions for the people in the maze that:
-1. Tells each person their evacuation route (position → exit)
-2. Warns about obstacles/hazards to avoid
-3. Identifies which people are in most danger
-4. Provides reassurance that scouts are mapping safe routes
-5. Gives simple directional guidance (north/south/east/west)
-
-Keep the message concise (2-4 sentences per person), professional, and reassuring. This will be spoken aloud to people in an emergency situation.
+Keep it SIMPLE and DIRECT. This will be spoken aloud.
 """
         
         return prompt
@@ -175,16 +210,21 @@ class ElevenLabsVoice:
     
     def __init__(self):
         self.api_key = os.getenv('ELEVENLABS_API_KEY')
-        self.voice_id = os.getenv('ELEVENLABS_VOICE_ID', 'EXAVITQu4vr4xnSDxMaL')  # Default: Sarah
+        self.voice_id = os.getenv('ELEVENLABS_VOICE_ID', 'EXAVITQu4vr4xnSDxMaL')
         self.api_url = f"https://api.elevenlabs.io/v1/text-to-speech/{self.voice_id}"
+        
+        if self.api_key and self.api_key != 'your_key_here':
+            print("✓ ElevenLabs voice initialized")
+        else:
+            print("⚠️  ElevenLabs API key not set - voice disabled")
     
     def text_to_speech(self, text: str, output_file: str = "evacuation_guidance.mp3") -> bool:
         """
         Convert text to speech and save to file
         Returns True if successful
         """
-        if not self.api_key:
-            print("Warning: ELEVENLABS_API_KEY not set. Skipping voice generation.")
+        if not self.api_key or self.api_key == 'your_key_here':
+            print("⚠️  Skipping voice generation - no API key")
             return False
         
         headers = {
@@ -309,8 +349,38 @@ class EvacuationAICoordinator:
             if self.voice_generator.text_to_speech(guidance_text, voice_file):
                 result['voice_file'] = voice_file
                 self.voice_file = voice_file
+                # Auto-play the audio
+                self._play_audio(voice_file)
         
         return result
+    
+    def _play_audio(self, audio_file: str):
+        """Play audio file in background"""
+        import subprocess
+        import platform
+        import os
+        
+        if not os.path.exists(audio_file):
+            return
+        
+        try:
+            system = platform.system()
+            if system == 'Darwin':  # macOS
+                subprocess.Popen(['afplay', audio_file], 
+                               stdout=subprocess.DEVNULL, 
+                               stderr=subprocess.DEVNULL)
+                print(f"🔊 Playing audio: {audio_file}")
+            elif system == 'Linux':
+                subprocess.Popen(['aplay', audio_file], 
+                               stdout=subprocess.DEVNULL, 
+                               stderr=subprocess.DEVNULL)
+                print(f"🔊 Playing audio: {audio_file}")
+            elif system == 'Windows':
+                import winsound
+                winsound.PlaySound(audio_file, winsound.SND_FILENAME | winsound.SND_ASYNC)
+                print(f"🔊 Playing audio: {audio_file}")
+        except Exception as e:
+            print(f"⚠️  Could not play audio: {e}")
     
     def handle_path_blocked(self, robot_id: str, blocked_pos: tuple, generate_voice: bool = True) -> Dict:
         """

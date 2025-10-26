@@ -78,13 +78,14 @@ class MazeGrid:
         return True
     
     def get_neighbors(self, position: Tuple[int, int]) -> List[Tuple[int, int]]:
-        """Get valid neighboring positions (4-directional movement only)"""
+        """Get valid neighboring positions (8-directional movement)"""
         x, y = position
         neighbors = []
         
-        # 4 directions only: up, down, left, right (no diagonals)
+        # 8 directions: up, down, left, right, and diagonals
         directions = [
-            (0, 1), (0, -1), (1, 0), (-1, 0)  # Cardinal directions only
+            (0, 1), (0, -1), (1, 0), (-1, 0),  # Cardinal
+            (1, 1), (1, -1), (-1, 1), (-1, -1)  # Diagonal
         ]
         
         for dx, dy in directions:
@@ -358,37 +359,7 @@ class EvacuationCoordinator:
         }
 
 
-def astar_path(maze: list[list[int]], start: tuple[int, int], goal: tuple[int, int]) -> list[tuple[int, int]]:
-    """
-    Return the shortest path from start to goal as a list of grid coordinates.
-    Uses the existing AStarPathfinder class.
-    """
-    size = len(maze)
-    
-    # Quick validation
-    if not (0 <= start[0] < size and 0 <= start[1] < size and 
-            0 <= goal[0] < size and 0 <= goal[1] < size):
-        return []
-    
-    if maze[start[1]][start[0]] == 1 or maze[goal[1]][goal[0]] == 1:
-        return []
-    
-    if start == goal:
-        return [start]
-    
-    # Use existing OOP system
-    maze_grid = MazeGrid(size)
-    for y in range(size):
-        for x in range(size):
-            if maze[y][x] == 1:
-                maze_grid.add_obstacle(x, y)
-    
-    pathfinder = AStarPathfinder(maze_grid)
-    return pathfinder.find_path(start, goal) or []
-
-
 if __name__ == "__main__":
-    # Test the dynamic pathfinding system
     print("=" * 60)
     print("DYNAMIC EVACUATION PATHFINDING TEST")
     print("=" * 60)
@@ -408,14 +379,11 @@ if __name__ == "__main__":
     maze.add_robot("scout_1", 0, 0)
     maze.add_robot("scout_2", 7, 0)
     
-    # Add humans (already known or detected by robots)
     maze.add_human("human_1", 4, 4)
     maze.add_human("human_2", 5, 3)
     
-    # Create coordinator
     coordinator = EvacuationCoordinator(maze)
     
-    # Calculate evacuation paths for all humans
     print("\n1. Initial Evacuation Paths:")
     print("-" * 60)
     evacuation_plans = coordinator.calculate_evacuation_paths()

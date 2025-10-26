@@ -14,7 +14,7 @@ NC='\033[0m' # No Color
 
 echo ""
 echo "=========================================="
-echo "🚨 ZEROPANIC COMPLETE SYSTEM"
+echo " ZEROPANIC COMPLETE SYSTEM"
 echo "=========================================="
 echo ""
 
@@ -45,14 +45,14 @@ trap cleanup SIGINT SIGTERM
 
 # Check Python
 if ! command -v python3 &> /dev/null; then
-    echo -e "${RED}❌ Python 3 not found${NC}"
+    echo -e "${RED} Python 3 not found${NC}"
     exit 1
 fi
 echo -e "${GREEN}✓${NC} Python found"
 
 # Check Flutter
 if ! command -v flutter &> /dev/null; then
-    echo -e "${YELLOW}⚠️  Flutter not found (frontend will not start)${NC}"
+    echo -e "${YELLOW}  Flutter not found (frontend will not start)${NC}"
     FLUTTER_AVAILABLE=false
 else
     echo -e "${GREEN}✓${NC} Flutter found"
@@ -74,12 +74,11 @@ echo -e "${GREEN}✓${NC} Dependencies ready"
 # Check for .env file
 if [ ! -f ".env" ]; then
     echo ""
-    echo -e "${YELLOW}⚠️  No .env file found. Creating template...${NC}"
+    echo -e "${YELLOW}  No .env file found. Creating template...${NC}"
     cat > .env << 'EOF'
 # ZeroPanic Configuration
 # Optional - demo works without these!
 
-# AI Integration (Optional)
 GEMINI_API_KEY=your_gemini_key_here
 ELEVENLABS_API_KEY=your_elevenlabs_key_here
 ROBOFLOW_API_KEY=your_roboflow_key_here
@@ -110,7 +109,7 @@ while ! curl -s http://localhost:5001/health > /dev/null 2>&1; do
     sleep 1
     COUNTER=$((COUNTER+1))
     if [ $COUNTER -ge $MAX_WAIT ]; then
-        echo -e "${RED}❌ Backend failed to start after ${MAX_WAIT}s${NC}"
+        echo -e "${RED} Backend failed to start after ${MAX_WAIT}s${NC}"
         echo "Check backend.log for errors"
         kill $BACKEND_PID 2>/dev/null || true
         exit 1
@@ -204,7 +203,7 @@ if [ "$FLUTTER_AVAILABLE" = true ]; then
     echo ""
 else
     echo "=========================================="
-    echo "⚠️  FLUTTER NOT AVAILABLE"
+    echo "  FLUTTER NOT AVAILABLE"
     echo "=========================================="
     echo "Install Flutter to run the mobile app:"
     echo "https://flutter.dev/docs/get-started/install"
@@ -213,16 +212,16 @@ fi
 
 # Show system overview
 echo "=========================================="
-echo "✅ SYSTEM OVERVIEW"
+echo " SYSTEM OVERVIEW"
 echo "=========================================="
 echo ""
 echo "Components Running:"
-echo "  ✅ Backend API Server (Port 5001)"
-echo "  ✅ Robot Simulation"
-echo "  ✅ A* Pathfinding Algorithm"
-echo "  ✅ Maze Grid (8x8)"
+echo "   Backend API Server (Port 5001)"
+echo "   Robot Simulation"
+echo "   A* Pathfinding Algorithm"
+echo "   Maze Grid (8x8)"
 if [ "$FLUTTER_AVAILABLE" = true ]; then
-    echo "  ✅ Flutter App (Port 8080)"
+    echo "   Flutter App (Port 8080)"
 fi
 echo ""
 

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:math';
+import 'dart:ui' as ui;
 import '../services/api_service.dart';
 
 class LiveEvacuationScreen extends StatefulWidget {
@@ -178,30 +180,40 @@ class _LiveEvacuationScreenState extends State<LiveEvacuationScreen> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            // Larger, clearer maze view
-            SizedBox(
-              height: 400, // Fixed height for better visibility
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey[800]!, width: 2),
-                  borderRadius: BorderRadius.circular(8),
-                  color: Colors.grey[200],
+            // 8x8 Maze Grid - Fit on screen without scrolling
+            Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: 350,
+                  maxHeight: 350,
                 ),
-                child: GridView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(4),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: _mazeSize,
-                    mainAxisSpacing: 2,
-                    crossAxisSpacing: 2,
-                  ),
-                  itemCount: _mazeSize * _mazeSize,
-                  itemBuilder: (context, index) {
-                    final x = index % _mazeSize;
-                    final y = _mazeSize - 1 - (index ~/ _mazeSize); // Flip Y for proper display
+                child: AspectRatio(
+                  aspectRatio: 1.0,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.black, width: 3),
+                      color: Colors.grey[100],
+                    ),
+                    child: CustomPaint(
+                      painter: PathPainter(humans: humans),
+                      child: GridView.builder(
+                        physics: const NeverScrollableScrollPhysics(),
+                        padding: EdgeInsets.zero,
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 8,
+                          mainAxisSpacing: 1,
+                          crossAxisSpacing: 1,
+                        ),
+                        itemCount: 64,
+                        itemBuilder: (context, index) {
+                          final x = index % 8;
+                          final y = 7 - (index ~/ 8);
 
-                    return _buildCell(x, y, obstacles, exits, robots, humans);
-                  },
+                          return _buildCell(x, y, obstacles, exits, robots, humans);
+                        },
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -249,32 +261,27 @@ class _LiveEvacuationScreenState extends State<LiveEvacuationScreen> {
 
     Color cellColor = Colors.white;
     Widget? icon;
-    Color? borderColor;
+    Widget? pathIndicator;
 
+    // Base layer
     if (isObstacle) {
-      // Obstacles are BLACK
       cellColor = Colors.black;
     } else if (isExit) {
-      // Exit is BRIGHT GREEN with icon
-      cellColor = Colors.green[600]!;
-      icon = const Icon(Icons.exit_to_app, color: Colors.white, size: 20);
-    } else if (isOnEvacuationPath) {
-      // Evacuation path is BRIGHT GREEN (before robots/humans overlay)
-      cellColor = Colors.green[300]!;
+      cellColor = Colors.green[700]!;
+      icon = const Icon(Icons.exit_to_app, color: Colors.white, size: 28);
     } else {
-      // Empty cells are white
       cellColor = Colors.white;
     }
     
+    // Don't draw path dots here - PathPainter will draw lines
+    
     // Overlay robots and humans on top
     if (robotAtPos.isNotEmpty) {
-      // Robots are RED with robot icon
-      icon = const Icon(Icons.smart_toy, color: Colors.red, size: 24);
+      icon = const Icon(Icons.smart_toy, color: Colors.red, size: 32);
     } else if (humanAtPos.isNotEmpty) {
-      // Humans are BLUE DOT
       icon = Container(
-        width: 16,
-        height: 16,
+        width: 20,
+        height: 20,
         decoration: const BoxDecoration(
           color: Colors.blue,
           shape: BoxShape.circle,
@@ -285,9 +292,14 @@ class _LiveEvacuationScreenState extends State<LiveEvacuationScreen> {
     return Container(
       decoration: BoxDecoration(
         color: cellColor,
-        border: Border.all(color: Colors.grey[400]!, width: 1),
+        border: Border.all(color: Colors.grey[300]!, width: 0.5),
       ),
-      child: Center(child: icon),
+      child: Stack(
+        children: [
+          if (pathIndicator != null) pathIndicator,
+          if (icon != null) Center(child: icon),
+        ],
+      ),
     );
   }
 
@@ -298,10 +310,10 @@ class _LiveEvacuationScreenState extends State<LiveEvacuationScreen> {
       alignment: WrapAlignment.center,
       children: [
         _legendItem(Colors.red, 'Robot', Icons.smart_toy),
-        _legendItem(Colors.blue, 'Human (dot)', Icons.circle),
-        _legendItem(Colors.green[600]!, 'Exit', Icons.exit_to_app),
+        _legendItem(Colors.blue, 'Human', Icons.circle),
+        _legendItem(Colors.green[700]!, 'Exit', Icons.exit_to_app),
         _legendItem(Colors.black, 'Obstacle', Icons.block),
-        _legendItem(Colors.green[300]!, 'Evacuation Path', Icons.route),
+        _legendItem(Colors.green[600]!, 'Path (green dots)', Icons.circle),
       ],
     );
   }
@@ -499,5 +511,82 @@ class _LiveEvacuationScreenState extends State<LiveEvacuationScreen> {
       ),
     );
   }
+}
+
+// Custom painter to draw evacuation path as bold dotted lines
+class PathPainter extends CustomPainter {
+  final List<Map<String, dynamic>> humans;
+
+  PathPainter({required this.humans});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cellSize = size.width / 8;
+    
+    for (var human in humans) {
+      final path = human['evacuation_path'] as List?;
+      if (path == null || path.isEmpty) continue;
+      
+      final paint = Paint()
+        ..color = Colors.green  // BRIGHT GREEN
+        ..strokeWidth = 12.0  // VERY THICK line
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round;
+      
+      // Draw THICK GREEN SNAKE PATH
+      for (int i = 0; i < path.length - 1; i++) {
+        final current = path[i] as List;
+        final next = path[i + 1] as List;
+        
+        // Convert grid coordinates to screen coordinates
+        final x1 = (current[0] + 0.5) * cellSize;
+        final y1 = (7 - current[1] + 0.5) * cellSize;
+        final x2 = (next[0] + 0.5) * cellSize;
+        final y2 = (7 - next[1] + 0.5) * cellSize;
+        
+        // Draw glow effect (outer line)
+        final glowPaint = Paint()
+          ..color = Colors.green.withOpacity(0.3)
+          ..strokeWidth = 20.0
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round;
+        canvas.drawLine(Offset(x1, y1), Offset(x2, y2), glowPaint);
+        
+        // Draw main thick line
+        canvas.drawLine(Offset(x1, y1), Offset(x2, y2), paint);
+      }
+    }
+  }
+  
+  void _drawDottedLine(Canvas canvas, Offset start, Offset end, Paint paint) {
+    const dashWidth = 8.0;
+    const dashSpace = 6.0;
+    
+    final dx = end.dx - start.dx;
+    final dy = end.dy - start.dy;
+    final distance = sqrt(dx * dx + dy * dy);
+    final dashCount = (distance / (dashWidth + dashSpace)).floor();
+    
+    for (int i = 0; i < dashCount; i++) {
+      final t1 = (i * (dashWidth + dashSpace)) / distance;
+      final t2 = ((i * (dashWidth + dashSpace)) + dashWidth) / distance;
+      
+      final p1 = Offset(
+        start.dx + dx * t1,
+        start.dy + dy * t1,
+      );
+      final p2 = Offset(
+        start.dx + dx * t2,
+        start.dy + dy * t2,
+      );
+      
+      canvas.drawLine(p1, p2, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(PathPainter oldDelegate) => true;
 }
 

@@ -87,24 +87,35 @@ def run_simulation_loop():
             latest_state = state
             latest_state['obstacles'] = list(simulation.maze.obstacles) + list(simulation.maze.blocked_paths)
             
-            # Every 5 seconds, run AI analysis
+            # Print status every 2 seconds
+            if ai_analysis_counter % (update_rate * 2) == 0:
+                print(f"⏱️  Time: {state['time']:.1f}s | Robots: {len(state['robots'])} | "
+                      f"Humans: {len(state['humans'])} | Paths: {len(state['evacuation_plans'])} | "
+                      f"Obstacles: {len(state['obstacles'])}")
+            
+            # Every 10 seconds, run AI analysis with VOICE
             ai_analysis_counter += 1
-            if ai_analysis_counter >= (update_rate * 5):  # Every 5 seconds
+            if ai_analysis_counter >= (update_rate * 10):  # Every 10 seconds
                 ai_analysis_counter = 0
                 try:
-                    guidance = ai_coordinator.analyze_and_guide(generate_voice=False)
+                    # Generate voice guidance
+                    guidance = ai_coordinator.analyze_and_guide(generate_voice=True)
                     latest_state['ai_guidance'] = guidance.get('guidance_text', '')
-                    print(f"\n🎯 AI Guidance updated: {latest_state['ai_guidance'][:80]}...")
+                    print(f"\n🎯 AI Guidance: {latest_state['ai_guidance'][:100]}...")
+                    if guidance.get('voice_file'):
+                        print(f"🔊 Voice file: {guidance['voice_file']}")
                 except Exception as e:
                     print(f"⚠️  AI analysis error: {e}")
             
             time.sleep(1.0 / update_rate)  # Control update rate
             
         except Exception as e:
-            print(f" Simulation error: {e}")
+            print(f"❌ Simulation error: {e}")
+            import traceback
+            traceback.print_exc()
             time.sleep(1)
     
-    print(" Simulation loop stopped")
+    print("⏹️  Simulation loop stopped")
 
 # ============ API ENDPOINTS ============
 

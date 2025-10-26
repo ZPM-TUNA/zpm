@@ -231,7 +231,7 @@ HTML_TEMPLATE = """
 </head>
 <body>
     <div class="header">
-        <h1>🚨 ZeroPanic Evacuation System</h1>
+        <h1> ZeroPanic Evacuation System</h1>
         <p>Real-Time AI-Powered Emergency Response</p>
     </div>
     
@@ -239,16 +239,16 @@ HTML_TEMPLATE = """
         <div class="maze-container">
             <div id="maze" class="maze"></div>
             <div class="status" id="status">
-                🤖 System Active - Scanning for humans...
+                 System Active - Scanning for humans...
             </div>
             <div class="ai-guidance" id="guidance" style="display:none;">
-                <h3>🎯 AI Guidance</h3>
+                <h3> AI Guidance</h3>
                 <p id="guidance-text"></p>
             </div>
         </div>
         
         <div class="stats-panel">
-            <h2>📊 Live Stats</h2>
+            <h2> Live Stats</h2>
             
             <div class="stat-item">
                 <h3>Humans Detected</h3>
@@ -357,7 +357,7 @@ HTML_TEMPLATE = """
                     const cell = document.getElementById(`cell-${x}-${y}`);
                     if (cell) {
                         cell.className = 'cell exit';
-                        cell.innerHTML = '🚪';
+                        cell.innerHTML = '';
                     }
                 });
             }
@@ -404,7 +404,7 @@ HTML_TEMPLATE = """
             // Update status
             const status = document.getElementById('status');
             if (state.stats && state.stats.humans_detected === state.stats.total_humans) {
-                status.textContent = '✅ All humans detected - Evacuation in progress!';
+                status.textContent = ' All humans detected - Evacuation in progress!';
                 status.style.background = '#e8f5e9';
             } else {
                 status.textContent = '🤖 Scanning for humans...';
