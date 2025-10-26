@@ -30,10 +30,10 @@ ROBOFLOW_API_KEY = os.getenv('ROBOFLOW_API_KEY', 'ZYwFcdKkmGusAi65UBgE')
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
     gemini_model = genai.GenerativeModel('gemini-2.0-flash-exp')
-    print("✅ Gemini AI initialized")
+    print("Gemini AI initialized")
 else:
     gemini_model = None
-    print("⚠️  No Gemini API key")
+    print("  No Gemini API key")
 
 # ============ 1. GEMINI API ============
 
@@ -190,7 +190,7 @@ def text_to_speech():
 @app.route('/api/roboflow/detect-human', methods=['POST'])
 def detect_human():
     """
-    Detect humans in image using Roboflow
+    Detect humans in image using Roboflow Workflow
     
     Input:
     - Form data with 'image' file OR
@@ -226,24 +226,33 @@ def detect_human():
                 'error': 'No image provided'
             }), 400
         
-        # Call Roboflow API
-        url = "https://detect.roboflow.com/find-toys-robots-and-figurines/1"
-        params = {
+        # Call Roboflow Workflow API (correct endpoint)
+        url = "https://serverless.roboflow.com/robotdetector/workflows/find-toys-robots-and-figurines"
+        
+        payload = {
             'api_key': ROBOFLOW_API_KEY,
-            'confidence': 40,
-            'overlap': 30
+            'inputs': {
+                'image': {
+                    'type': 'base64',
+                    'value': image_base64
+                }
+            }
         }
         
-        response = requests.post(
-            url,
-            params=params,
-            data=image_base64,
-            headers={'Content-Type': 'application/x-www-form-urlencoded'}
-        )
+        headers = {'Content-Type': 'application/json'}
+        
+        response = requests.post(url, json=payload, headers=headers)
         
         if response.status_code == 200:
             result = response.json()
-            predictions = result.get('predictions', [])
+            
+            # Extract predictions from workflow response
+            outputs = result.get('outputs', [])
+            predictions = []
+            
+            if outputs and len(outputs) > 0:
+                predictions_data = outputs[0].get('predictions', {})
+                predictions = predictions_data.get('predictions', [])
             
             # Format detections
             detections = []
@@ -254,7 +263,8 @@ def detect_human():
                     'x': pred.get('x', 0),
                     'y': pred.get('y', 0),
                     'width': pred.get('width', 0),
-                    'height': pred.get('height', 0)
+                    'height': pred.get('height', 0),
+                    'detection_id': pred.get('detection_id', '')
                 })
             
             return jsonify({
@@ -266,7 +276,8 @@ def detect_human():
         else:
             return jsonify({
                 'success': False,
-                'error': response.text
+                'error': response.text,
+                'status_code': response.status_code
             }), response.status_code
             
     except Exception as e:
