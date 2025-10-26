@@ -1,8 +1,8 @@
-# 🚀 AI Services API - Gemini, ElevenLabs, Roboflow
+#  AI Services API - Gemini, ElevenLabs, Roboflow
 
 Simple REST API providing AI services for evacuation system integration.
 
-## 📦 What's Included
+##  What's Included
 
 This repository provides **3 AI services** as REST APIs:
 
@@ -12,7 +12,7 @@ This repository provides **3 AI services** as REST APIs:
 
 Everything else (pathfinding, simulation, ROS, frontend) is handled by your teammate.
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### 1. Install Dependencies
 
@@ -94,7 +94,7 @@ curl -X POST http://localhost:5002/api/elevenlabs/text-to-speech \
 
 ---
 
-### 📸 Roboflow - Human Detection
+###  Roboflow - Human Detection
 
 **Endpoint:** `POST /api/roboflow/detect-human`
 
