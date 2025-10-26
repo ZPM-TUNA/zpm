@@ -178,17 +178,22 @@ class _LiveEvacuationScreenState extends State<LiveEvacuationScreen> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            AspectRatio(
-              aspectRatio: 1,
+            // Larger, clearer maze view
+            SizedBox(
+              height: 400, // Fixed height for better visibility
               child: Container(
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey[400]!),
+                  border: Border.all(color: Colors.grey[800]!, width: 2),
                   borderRadius: BorderRadius.circular(8),
+                  color: Colors.grey[200],
                 ),
                 child: GridView.builder(
                   physics: const NeverScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(4),
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: _mazeSize,
+                    mainAxisSpacing: 2,
+                    crossAxisSpacing: 2,
                   ),
                   itemCount: _mazeSize * _mazeSize,
                   itemBuilder: (context, index) {
@@ -292,11 +297,11 @@ class _LiveEvacuationScreenState extends State<LiveEvacuationScreen> {
       runSpacing: 8,
       alignment: WrapAlignment.center,
       children: [
-        _legendItem(Colors.blue, 'Robot', Icons.smart_toy),
-        _legendItem(Colors.red, 'Human', Icons.person),
-        _legendItem(Colors.green, 'Exit', Icons.exit_to_app),
-        _legendItem(Colors.grey[800]!, 'Obstacle', null),
-        _legendItem(Colors.orange[200]!, 'Path', null),
+        _legendItem(Colors.red, 'Robot', Icons.smart_toy),
+        _legendItem(Colors.blue, 'Human (dot)', Icons.circle),
+        _legendItem(Colors.green[600]!, 'Exit', Icons.exit_to_app),
+        _legendItem(Colors.black, 'Obstacle', Icons.block),
+        _legendItem(Colors.green[300]!, 'Evacuation Path', Icons.route),
       ],
     );
   }
