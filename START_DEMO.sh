@@ -4,7 +4,7 @@
 # Quick Start Demo Script
 
 echo "=========================================="
-echo "🚨 ZEROPANIC EVACUATION SYSTEM"
+echo " ZEROPANIC EVACUATION SYSTEM"
 echo "=========================================="
 echo ""
 
@@ -17,14 +17,14 @@ NC='\033[0m' # No Color
 # Check Python
 echo "Checking dependencies..."
 if ! command -v python3 &> /dev/null; then
-    echo -e "${RED}❌ Python 3 not found. Please install Python 3.8+${NC}"
+    echo -e "${RED} Python 3 not found. Please install Python 3.8+${NC}"
     exit 1
 fi
 echo -e "${GREEN}✓${NC} Python found"
 
 # Check if in correct directory
 if [ ! -d "backend" ]; then
-    echo -e "${RED}❌ Please run this script from the project root directory${NC}"
+    echo -e "${RED} Please run this script from the project root directory${NC}"
     exit 1
 fi
 
@@ -58,7 +58,7 @@ fi
 # Start the main server
 echo ""
 echo "=========================================="
-echo "🚀 STARTING ZEROPANIC SERVER"
+echo "STARTING ZEROPANIC SERVER"
 echo "=========================================="
 echo ""
 echo "Main Server: http://localhost:5001"

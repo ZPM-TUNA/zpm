@@ -15,7 +15,7 @@ NC='\033[0m'
 
 # Check Flutter
 if ! command -v flutter &> /dev/null; then
-    echo -e "${RED}❌ Flutter not found. Please install Flutter:${NC}"
+    echo -e "${RED} Flutter not found. Please install Flutter:${NC}"
     echo "   https://flutter.dev/docs/get-started/install"
     exit 1
 fi
@@ -27,7 +27,7 @@ echo "Checking backend connection..."
 if curl -s http://localhost:5001/health > /dev/null 2>&1; then
     echo -e "${GREEN}✓${NC} Backend is running"
 else
-    echo -e "${YELLOW}⚠️  Backend not detected at http://localhost:5001${NC}"
+    echo -e "${YELLOW}  Backend not detected at http://localhost:5001${NC}"
     echo "   Please start the backend first:"
     echo "   ./START_DEMO.sh"
     echo ""
@@ -49,7 +49,7 @@ flutter pub get
 # Run on web by default (fastest for demo)
 echo ""
 echo "=========================================="
-echo "🚀 STARTING FLUTTER WEB APP"
+echo " STARTING FLUTTER WEB APP"
 echo "=========================================="
 echo ""
 echo "App will open in your default browser"
