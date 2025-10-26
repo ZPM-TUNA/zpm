@@ -51,7 +51,7 @@ def initialize_system():
     global simulation, ai_coordinator
     
     print("=" * 60)
-    print("🚀 ZEROPANIC EVACUATION SYSTEM")
+    print(" ZEROPANIC EVACUATION SYSTEM")
     print("=" * 60)
     
     # Create simulation with 8x8 maze
@@ -82,7 +82,10 @@ def run_simulation_loop():
         try:
             # Update simulation
             state = simulation.run_step()
+            
+            # Update latest_state with dynamic obstacles included
             latest_state = state
+            latest_state['obstacles'] = list(simulation.maze.obstacles) + list(simulation.maze.blocked_paths)
             
             # Every 5 seconds, run AI analysis
             ai_analysis_counter += 1
@@ -98,10 +101,10 @@ def run_simulation_loop():
             time.sleep(1.0 / update_rate)  # Control update rate
             
         except Exception as e:
-            print(f"❌ Simulation error: {e}")
+            print(f" Simulation error: {e}")
             time.sleep(1)
     
-    print("🛑 Simulation loop stopped")
+    print(" Simulation loop stopped")
 
 # ============ API ENDPOINTS ============
 
@@ -209,7 +212,7 @@ def flutter_update():
             'timestamp': latest_state['time'],
             'maze': {
                 'size': latest_state['maze_size'],
-                'obstacles': latest_state['obstacles'],
+                'obstacles': list(simulation.maze.obstacles) + list(simulation.maze.blocked_paths),  # Combine for display
                 'blocked_paths': list(simulation.maze.blocked_paths),
                 'exits': latest_state['exits']
             },
@@ -367,7 +370,7 @@ def reset_simulation():
     # Stop if running
     was_running = running
     running = False
-    time.sleep(0.3)  # Wait for loop to stop
+    time.sleep(0.3)  
     
     # Reinitialize
     initialize_system()
@@ -415,14 +418,14 @@ if __name__ == '__main__':
     # Server info
     port = int(os.getenv('PORT', 5001))
     print("\n" + "=" * 60)
-    print("🚀 ZEROPANIC SERVER RUNNING")
+    print(" ZEROPANIC SERVER RUNNING")
     print("=" * 60)
-    print(f"📡 Main API: http://localhost:{port}")
-    print(f"📊 Health Check: http://localhost:{port}/health")
-    print(f"📱 Flutter Endpoint: http://localhost:{port}/api/flutter-update")
-    print(f"🎨 State Endpoint: http://localhost:{port}/api/state")
+    print(f" Main API: http://localhost:{port}")
+    print(f" Health Check: http://localhost:{port}/health")
+    print(f" Flutter Endpoint: http://localhost:{port}/api/flutter-update")
+    print(f" State Endpoint: http://localhost:{port}/api/state")
     print("=" * 60)
-    print("📝 Available Endpoints:")
+    print(" Available Endpoints:")
     print("   GET  /health")
     print("   GET  /api/state")
     print("   GET  /api/maze")
@@ -439,7 +442,7 @@ if __name__ == '__main__':
     print("   POST /api/control/reset")
     print("   GET  /api/stats")
     print("=" * 60)
-    print("\n✨ Press Ctrl+C to stop\n")
+    print("\n Press Ctrl+C to stop\n")
     
     # Run Flask app
     app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
