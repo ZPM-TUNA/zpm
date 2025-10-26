@@ -1,4 +1,4 @@
-# 🚨 ZeroPanic - AI-Powered Emergency Evacuation System
+#  ZeroPanic - AI-Powered Emergency Evacuation System
 
 > **An intelligent robot coordination system for emergency evacuation using real-time pathfinding, AI guidance, and human detection.**
 
@@ -24,7 +24,7 @@ ZeroPanic coordinates simulated autonomous robots to evacuate people from emerge
 
 ---
 
-## ✨ Key Features
+## Key Features
 
 ###  Intelligent Robot Simulation
 - Multi-robot coordination (2+ robots)
@@ -38,7 +38,7 @@ ZeroPanic coordinates simulated autonomous robots to evacuate people from emerge
 - Multiple exit optimization
 - Per-human evacuation routes
 
-### 🎨 Live Visualization
+### Live Visualization
 - **Flutter Mobile App**: Real-time 8x8 grid display
 - Robot positions (blue )
 - Human detection (red )
