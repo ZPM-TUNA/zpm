@@ -152,24 +152,32 @@ class MazeSimulation:
                     print(f"[{robot_id}] Detected {human_id} at {pos}")
                     self.coordinator.robot_detected_human(robot_id, human_id, pos)
             
-            # Simple exploration pattern if no specific task
-            if not robot.path or random.random() < 0.05:
-                # Pick random valid position to explore
-                target_x = random.randint(0, self.maze.size - 1)
-                target_y = random.randint(0, self.maze.size - 1)
-                
-                if (target_x, target_y) not in self.maze.obstacles:
-                    robot.path = [(target_x, target_y)]
+            # Update robot exploration and movement
+            self.update_robot_exploration(robot_id)
+    
+    def update_robot_exploration(self, robot_id: str):
+        """Update robot's exploration and movement"""
+        robot = self.robots.get(robot_id)
+        if not robot:
+            return
             
-            # Move along path
-            if robot.path:
-                target = robot.path[0]
-                if robot.move_to(target, dt):
-                    robot.path.pop(0)
-                    self.coordinator.update_robot_exploration(
-                        robot_id, 
-                        list(robot.explored_positions)
-                    )
+        # Simple exploration pattern if no specific task
+        if not robot.path or random.random() < 0.05:
+            # Pick random valid position to explore
+            target_x = random.randint(0, self.maze.size - 1)
+            target_y = random.randint(0, self.maze.size - 1)
+            
+            if (target_x, target_y) not in self.maze.obstacles:
+                robot.path = [(target_x, target_y)]
+        
+        # Move along path
+        if robot.path:
+            target = robot.path[0]
+            if robot.move_to(target, 0.1):
+                robot.path.pop(0)
+                # Update coordinator with robot position (rounded to grid)
+                int_x, int_y = int(round(robot.position[0])), int(round(robot.position[1]))
+                self.coordinator.update_robot_exploration(robot_id, (int_x, int_y))
     
     def get_state(self) -> dict:
         """Get current simulation state"""
