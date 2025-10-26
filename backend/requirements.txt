@@ -1,25 +1,11 @@
-# ZeroPanic - Emergency Evacuation System
-# KnightHacks 2025
-
-# Core Web Framework
+# Core dependencies
 flask==3.0.0
 flask-cors==4.0.0
-
-# AI Integration (Optional - demo works without)
-google-generativeai==0.3.2
-
-# Computer Vision (Optional)
-opencv-python==4.10.0.84
-inference-sdk  # Roboflow workflow SDK
-Pillow==10.1.0  # Image processing
-
-# Utilities
 python-dotenv==1.0.0
+
+# API Services
+google-generativeai==0.3.2
 requests==2.31.0
-numpy==2.0.0
 
-# Optional: Voice Generation
-# elevenlabs==0.2.26
-
-# Optional: ROS2 (install separately via apt on Ubuntu)
-# sudo apt install ros-humble-desktop
+# Optional (for image handling)
+pillow==10.1.0

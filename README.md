@@ -1,695 +1,243 @@
-#  ZeroPanic - AI-Powered Emergency Evacuation System
+# 🚀 AI Services API - Gemini, ElevenLabs, Roboflow
 
-> **An intelligent robot coordination system for emergency evacuation using real-time pathfinding, AI guidance, and human detection.**
+Simple REST API providing AI services for evacuation system integration.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![Flutter](https://img.shields.io/badge/Flutter-3.0+-02569B.svg)](https://flutter.dev/)
-[![ROS2](https://img.shields.io/badge/ROS2-Humble-22314E.svg)](https://docs.ros.org/en/humble/)
+## 📦 What's Included
 
----
+This repository provides **3 AI services** as REST APIs:
 
-##  Overview
+1. **Gemini AI** - Emergency message generation
+2. **ElevenLabs** - Text-to-speech conversion
+3. **Roboflow** - Human detection from images
 
-ZeroPanic coordinates simulated autonomous robots to evacuate people from emergency situations:
--  **Robots explore** an 8x8 maze autonomously
--  **Detect humans** using computer vision (Roboflow)
--  **Calculate optimal routes** using A* pathfinding
--  **Adapt dynamically** to obstacles and changing conditions
--  **AI-generated guidance** using Google Gemini + ElevenLabs
--  **Real-time mobile app** with Flutter
--  **ROS2 ready** for physical robot integration
+Everything else (pathfinding, simulation, ROS, frontend) is handled by your teammate.
 
-**Built for:** KnightHacks 2025 | ROS2 Sponsor Challenge
+## 🚀 Quick Start
 
----
-
-## Key Features
-
-###  Intelligent Robot Simulation
-- Multi-robot coordination (2+ robots)
-- Autonomous exploration behavior
-- 2-cell sensor range for obstacle/human detection
-- Real-time position tracking
-
-###  A* Pathfinding Engine
-- 8-directional movement
-- Dynamic path recalculation when obstacles detected
-- Multiple exit optimization
-- Per-human evacuation routes
-
-### Live Visualization
-- **Flutter Mobile App**: Real-time 8x8 grid display
-- Robot positions (blue )
-- Human detection (red )
-- Evacuation paths (orange)
-- Exits (green )
-- Obstacles (gray)
-- Statistics dashboard
-- AI guidance panel
-- Start/Stop/Reset controls
-
-###  AI Integration
-- **Google Gemini**: Analyzes scenarios and generates natural language guidance
-- **ElevenLabs**: Text-to-speech for audio instructions
-- **Roboflow**: Computer vision for human detection
-
-###  ROS2 Integration Layer
-- **Separate optional component** - doesn't interfere with main system
-- Standard ROS2 topics for robot poses, sensors, commands
-- Ready for physical robot deployment
-
----
-
-## Quick Start (2 Commands!)
-
-### Step 1: Start Backend
+### 1. Install Dependencies
 
 ```bash
-./START_DEMO.sh
+cd backend
+pip install -r requirements.txt
 ```
 
-This starts the main evacuation server on port 5001 with:
-- Robot simulation engine
-- A* pathfinding
-- AI coordinator
-- REST API (15+ endpoints)
+### 2. Configure API Keys
 
-### Step 2: Start Flutter App
-
-**Open a new terminal:**
+Create `backend/.env`:
 
 ```bash
-./START_FLUTTER.sh
+GEMINI_API_KEY=your_gemini_api_key
+ELEVENLABS_API_KEY=your_elevenlabs_api_key
+ROBOFLOW_API_KEY=your_roboflow_api_key
+PORT=5002
 ```
 
-This launches the Flutter app in your browser showing live evacuation status.
-
-**That's it! 🎉** You'll see robots exploring, detecting humans, and calculating evacuation routes in real-time.
-
----
-
-## 📊 System Architecture
-
-```
-┌──────────────────────────────────────────────────────────┐
-│                  FLUTTER WEB/MOBILE APP                   │
-│           Real-time Updates Every 200ms                   │
-│  ┌────────────────────────────────────────────────────┐  │
-│  │  Live Maze Grid | Statistics | AI Guidance Panel  │  │
-│  │  Start/Stop/Reset Controls | Evacuation Paths     │  │
-│  └────────────────────────────────────────────────────┘  │
-└────────────────────────┬─────────────────────────────────┘
-                         │ HTTP REST API
-┌────────────────────────┴─────────────────────────────────┐
-│           MAIN SERVER (backend/main_server.py)            │
-│                    Port 5001                              │
-│  ┌────────────────────────────────────────────────────┐  │
-│  │         SIMULATION ENGINE                           │  │
-│  │  • MazeGrid (8x8)           • Robot Agents         │  │
-│  │  • A* Pathfinding           • Human Detection      │  │
-│  │  • Obstacle Tracking        • Real-time Updates    │  │
-│  └────────────────────────────────────────────────────┘  │
-│  ┌────────────────────────────────────────────────────┐  │
-│  │         AI COORDINATOR                              │  │
-│  │  • Gemini AI (optional)     • ElevenLabs (optional)│  │
-│  │  • Roboflow Detection       • Voice Synthesis      │  │
-│  └────────────────────────────────────────────────────┘  │
-└──────────────────────────────────────────────────────────┘
-
-┌──────────────────────────────────────────────────────────┐
-│   ROS2 INTEGRATION LAYER     │
-│                                                           │
-│  • simulation_node.py - Publishes to ROS2 topics        │
-│  • Subscribes to /api/state endpoint                     │
-│  • Publishes robot poses, sensors, commands             │
-│  • No changes needed to main server!                     │
-│                                                           │
-│  When ready to integrate:                                │
-│  1. Main server keeps running as-is                      │
-│  2. ROS2 nodes connect via API                          │
-│  3. Physical robots can replace simulated ones          │
-└──────────────────────────────────────────────────────────┘
-```
-
----
-
-## 📁 Project Structure
-
-```
-ZeroPanic/
-├── backend/
-│   ├── main_server.py              #  MAIN UNIFIED SERVER
-│   ├── simulation_robot.py         # Robot simulation engine
-│   ├── pathfinding.py               # A* pathfinding algorithm
-│   ├── ai_coordinator.py            # Gemini AI integration
-│   ├── requirements.txt             # Python dependencies
-│   └── ros2_nodes/                  #  ROS2 INTEGRATION 
-│       ├── simulation_node.py       # Connects to main server API
-│       ├── simulation_publisher.py  # Publishes to ROS2 topics
-│       ├── pathfinding_node.py      # ROS2 pathfinding service
-│       └── arduino_bridge_node.py   # Physical robot bridge
-│
-├── frontend/                        # 📱 FLUTTER APP
-│   └── lib/src/
-│       ├── services/
-│       │   └── api_service.dart     # Backend API client
-│       ├── screens/
-│       │   └── live_evacuation_screen.dart  # Main live UI
-│       └── main_menu.dart           # Navigation
-│
-├── START_DEMO.sh                    #  Backend launcher
-├── START_FLUTTER.sh                 #  Flutter launcher
-├── TEST_SYSTEM.sh                   #  System tester
-├── QUICKSTART.md                    # Quick start guide
-├── PROJECT_OVERVIEW.md              # Complete technical docs
-├── SUMMARY.md                       # What was done
-└── README.md                        # This file
-```
-
----
-
-##  How It Works
-
-### 1. Simulation Loop (10 Hz)
-
-```python
-# In main_server.py
-while running:
-    # Robots explore maze
-    for robot in robots:
-        robot.sense_environment()  # Detect obstacles/humans
-        robot.move_along_path()     # Move to next target
-    
-    # Calculate evacuation paths
-    if human_detected:
-        path = astar.find_nearest_exit(human_position)
-        evacuation_plans[human_id] = path
-    
-    # Update state for API
-    latest_state = get_complete_state()
-    
-    time.sleep(0.1)  # 10 Hz
-```
-
-### 2. Flutter App (5 Hz)
-
-```dart
-// In live_evacuation_screen.dart
-Timer.periodic(Duration(milliseconds: 200), () {
-    // Fetch from backend
-    final state = await api.getFlutterUpdate();
-    
-    // Update UI
-    setState(() {
-        robots = state['robots'];
-        humans = state['humans'];
-        paths = state['evacuation_plans'];
-        aiGuidance = state['ai_guidance'];
-    });
-});
-```
-
-### 3. A* Pathfinding
-
-```python
-# When human detected or obstacle found
-def find_nearest_exit(human_pos):
-    best_path = None
-    min_distance = infinity
-    
-    for exit in exits:
-        path = astar(human_pos, exit, obstacles)
-        if path and len(path) < min_distance:
-            best_path = path
-            min_distance = len(path)
-    
-    return best_path
-```
-
----
-
-## 🔌 API Endpoints
-
-### Main Endpoints for Flutter
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/health` | GET | Server health check |
-| `/api/flutter-update` | GET | **Complete state for app** |
-| `/api/state` | GET | Raw simulation state |
-| `/api/control/start` | POST | Start simulation |
-| `/api/control/stop` | POST | Stop simulation |
-| `/api/control/reset` | POST | Reset to initial state |
-
-### Testing & Development
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/stats` | GET | Comprehensive statistics |
-| `/api/robots` | GET | All robot data |
-| `/api/humans` | GET | All human data with paths |
-| `/api/ai-guidance` | GET | Latest AI guidance |
-| `/api/obstacle/add` | POST | Add dynamic obstacle |
-| `/api/human/add` | POST | Add human for testing |
-
-### Example API Response
+### 3. Start Server
 
 ```bash
-# Get complete update (what Flutter uses)
-curl http://localhost:5001/api/flutter-update
+python3 services_api.py
 ```
 
+Server runs on `http://localhost:5002`
+
+### 4. Test APIs
+
+```bash
+python3 test_services.py
+```
+
+## 📡 API Endpoints
+
+### 🤖 Gemini - Generate Emergency Guidance
+
+**Endpoint:** `POST /api/gemini/generate-guidance`
+
+Send path coordinates, get emergency message.
+
+```bash
+curl -X POST http://localhost:5002/api/gemini/generate-guidance \
+  -H "Content-Type: application/json" \
+  -d '{
+    "start_position": [2, 3],
+    "end_position": [7, 7],
+    "path": [[2,3], [3,3], [4,4], [7,7]],
+    "obstacles": [[2,2], [3,2]],
+    "maze_size": 8
+  }'
+```
+
+**Response:**
 ```json
 {
-  "timestamp": 45.2,
-  "maze": {
-    "size": 8,
-    "obstacles": [[2,2], [3,3], [5,5]],
-    "exits": [[0,7], [7,7]]
-  },
-  "robots": [
-    {
-      "id": "robot_1",
-      "position": [2.5, 3.8],
-      "status": "exploring",
-      "explored_area": 24
-    }
-  ],
-  "humans": [
-    {
-      "id": "human_1",
-      "position": [4, 4],
-      "status": "detected",
-      "evacuation_path": [[4,4], [3,4], [2,5], [1,6], [0,7]],
-      "exit_target": [0, 7],
-      "distance_to_exit": 5
-    }
-  ],
-  "ai_guidance": "Person at [4,4]: Walk west 3 steps...",
-  "stats": {
-    "humans_detected": 2,
-    "total_humans": 3,
-    "obstacles_detected": 5
-  }
+  "success": true,
+  "guidance_text": "EMERGENCY! Move RIGHT 5 steps then UP 4 steps to exit. Stay calm.",
+  "path_length": 4
 }
 ```
 
 ---
 
-##  ROS2 Integration
+### 🔊 ElevenLabs - Text to Speech
 
-### How ROS2 Nodes Work Independently
+**Endpoint:** `POST /api/elevenlabs/text-to-speech`
 
-Your teammate's ROS2 work is **completely separate** and won't interfere:
-
-#### Current Setup (Non-ROS2)
-```
-Main Server (main_server.py)
-    ↓
-Simulation Engine
-    ↓
-Flutter App (via REST API)
-```
-
-#### With ROS2 Integration (Later)
-```
-Main Server (main_server.py)
-    ↓
-Simulation Engine
-    ├──→ Flutter App (via REST API)  ← Still works!
-    └──→ ROS2 Nodes (via API polling)
-            ↓
-        ROS2 Topics (/robot_1/pose, /cmd_vel, etc.)
-            ↓
-        Physical Robots (when ready)
-```
-
-### ROS2 Node Architecture
-
-```python
-class SimulationNode(Node):
-    def __init__(self):
-        # Polls main server API
-        self.api_client = http.Client('http://localhost:5001')
-        
-        # Publishes to ROS2
-        self.pose_pub = self.create_publisher(PoseStamped, '/robot_1/pose')
-        self.timer = self.create_timer(0.1, self.update)
-    
-    def update(self):
-        # Get state from main server
-        state = self.api_client.get('/api/state')
-        
-        # Publish to ROS2 topics
-        for robot in state['robots']:
-            pose = PoseStamped()
-            pose.pose.position.x = robot['position'][0]
-            pose.pose.position.y = robot['position'][1]
-            self.pose_pub.publish(pose)
-```
-
-### Integration Steps (When Ready)
-
-2. **Test independently**:
-   ```bash
-   # Terminal 1: Main server (your work)
-   ./START_DEMO.sh
-   
-   # Terminal 2: ROS2 node 
-   cd backend/ros2_nodes
-   python3 simulation_node.py
-   
-   # Terminal 3: Verify
-   ros2 topic list
-   ros2 topic echo /robot_1/pose
-   ```
-
-3. **Physical robot integration** (future):
-   - Replace simulated robots with real Elegoo robots
-   - ROS2 nodes send commands to `/cmd_vel`
-   - Robots report positions to main server via API
-   - Everything else stays the same!
-
-
-```
-backend/ros2_nodes/
-├── simulation_node.py        # Connects API → ROS2
-├── simulation_publisher.py   # Publishes robot data
-├── pathfinding_node.py       # ROS2 pathfinding service
-└── arduino_bridge_node.py    # Physical robot interface
-```
-
-**Key Point**: These files are **completely independent** of the main server. 
-
----
-
-##  Testing
-
-### Quick System Test
+Convert text to voice MP3.
 
 ```bash
-./TEST_SYSTEM.sh
-```
-
-This automatically tests all API endpoints and verifies everything works.
-
-### Manual Testing
-
-```bash
-# Health check
-curl http://localhost:5001/health
-
-# Get current state
-curl http://localhost:5001/api/state | python3 -m json.tool
-
-# Add obstacle dynamically
-curl -X POST http://localhost:5001/api/obstacle/add \
+curl -X POST http://localhost:5002/api/elevenlabs/text-to-speech \
   -H "Content-Type: application/json" \
-  -d '{"x": 4, "y": 4}'
-
-# Watch paths recalculate in Flutter app!
-
-# Reset simulation
-curl -X POST http://localhost:5001/api/control/reset
+  -d '{"text": "Emergency evacuation. Move to exit."}' \
+  --output audio.mp3
 ```
+
+**Response:** MP3 audio file
 
 ---
 
-##  Configuration
+### 📸 Roboflow - Human Detection
 
-### Backend Configuration
+**Endpoint:** `POST /api/roboflow/detect-human`
 
-Create `backend/.env` (optional - demo works without it):
+Detect humans in images.
 
 ```bash
-# Optional API Keys (demo works without these!)
-GEMINI_API_KEY=your_gemini_key_here
-ELEVENLABS_API_KEY=your_elevenlabs_key_here
-ROBOFLOW_API_KEY=your_roboflow_key_here
-
-# Server Settings
-PORT=5001
-DEFAULT_MAZE_SIZE=8
-SIMULATION_SPEED=1.0
+curl -X POST http://localhost:5002/api/roboflow/detect-human \
+  -F "image=@photo.jpg"
 ```
 
-### Customize Simulation
-
-Edit `backend/simulation_robot.py`:
-
-```python
-def setup_demo_scenario(self):
-    # Add exits
-    self.maze.add_exit(0, 7)
-    self.maze.add_exit(7, 7)
-    
-    # Add obstacles (random or fixed)
-    self.maze.add_obstacle(2, 2)
-    self.maze.add_obstacle(3, 3)
-    
-    # Add humans
-    self.maze.add_human('human_1', 4, 4)
-    self.maze.add_human('human_2', 5, 3)
-    
-    # Add robots
-    robot_1 = SimulatedRobot('robot_1', (0, 0), self.maze)
-    self.robots['robot_1'] = robot_1
-```
-
-### Flutter Backend URL
-
-Edit `frontend/lib/src/services/api_service.dart`:
-
-```dart
-static const String baseUrl = 'http://localhost:5001';
+**Response:**
+```json
+{
+  "success": true,
+  "num_detections": 1,
+  "detections": [
+    {
+      "class": "person",
+      "confidence": 0.92,
+      "x": 320,
+      "y": 240
+    }
+  ]
+}
 ```
 
 ---
 
-## 🎬 Demo Script (For Presentations)
+### 🏥 Health Check
 
-### 1. Introduction (30s)
-> "ZeroPanic uses AI-powered robots to coordinate emergency evacuations. Robots autonomously explore, detect humans, and calculate optimal escape routes in real-time."
-
-### 2. Show Backend (30s)
-- Start: `./START_DEMO.sh`
-- Point to terminal showing robots detecting humans
-- Highlight A* pathfinding calculations
-
-### 3. Show Flutter App (1min)
-- Start: `./START_FLUTTER.sh`
-- Point to live maze visualization
-- Show robots (blue), humans (red), paths (orange)
-- Highlight statistics dashboard
-- Show AI guidance panel
-
-### 4. Dynamic Demonstration (30s)
 ```bash
-curl -X POST http://localhost:5001/api/obstacle/add \
-  -H "Content-Type: application/json" \
-  -d '{"x": 4, "y": 4}'
+curl http://localhost:5002/health
 ```
-> "Watch the paths instantly recalculate around the new obstacle!"
 
-### 5. ROS2 Integration (30s)
-> "For the ROS2 sponsor challenge, we've built a complete integration layer. 
+## 📚 Full Documentation
 
-### 6. Technical Highlights (30s)
--  A* pathfinding with dynamic recalculation
--  REST API architecture
--  Real-time updates (200ms)
--  AI integration (Gemini + ElevenLabs)
--  ROS2-ready architecture
--  Mobile-first design
+See [SERVICES_API.md](SERVICES_API.md) for complete API documentation and integration examples.
 
----
+## 🎯 Integration
 
-##  Key Achievements
+Your teammate can integrate these APIs into their ROS/pathfinding system:
 
--  **Real Algorithms** - Actual A* pathfinding, not mockups
--  **Multi-Integration** - AI, vision, voice, mobile, ROS2
-- **Production Architecture** - Microservices, REST API, clean separation
-- **Dynamic Behavior** - Real-time path recalculation
-- **Professional Code** - Documented, tested, organized
-- **ROS2 Ready** - Framework for physical robots
--  **Team-Friendly** - ROS2 work doesn't interfere with main system
+1. Calculate shortest path (their system)
+2. Call `/api/gemini/generate-guidance` with path
+3. Get emergency message
+4. Call `/api/elevenlabs/text-to-speech` with message
+5. Get audio file
+6. Broadcast audio (their system)
+7. For human detection: Send camera images to `/api/roboflow/detect-human`
 
----
+## 📁 Project Structure
 
-##  Troubleshooting
+```
+KnightHacks/
+├── backend/
+│   ├── services_api.py      # Main API server
+│   ├── test_services.py     # Test script
+│   ├── requirements.txt     # Dependencies
+│   ├── .env                 # API keys (not in git)
+│   └── robot_photos_jpg/    # Test images
+├── SERVICES_API.md          # Full API documentation
+└── README.md                # This file
+```
 
-### Backend Issues
+## 🔑 API Keys
 
-**Port 5001 already in use:**
+Get your API keys:
+- **Gemini**: https://ai.google.dev/
+- **ElevenLabs**: https://elevenlabs.io/
+- **Roboflow**: https://roboflow.com/
+
+## ⚙️ Configuration
+
+Edit `backend/.env`:
+
 ```bash
-lsof -ti:5001 | xargs kill -9
+GEMINI_API_KEY=your_key_here
+ELEVENLABS_API_KEY=your_key_here
+ROBOFLOW_API_KEY=your_key_here
+ELEVENLABS_VOICE_ID=EXAVITQu4vr4xnSDxMaL  # Optional: change voice
+PORT=5002  # Optional: change port
 ```
 
-**Dependencies missing:**
+## 🧪 Testing
+
+Run automated tests:
+
 ```bash
 cd backend
-pip3 install -r requirements.txt
+python3 test_services.py
 ```
 
-### Flutter Issues
+Tests all 3 APIs and shows results.
 
-**Can't connect to backend:**
-1. Check backend is running: `curl http://localhost:5001/health`
-2. Verify URL in `api_service.dart`
-3. Try: `./TEST_SYSTEM.sh`
+## 📝 Notes
 
-**CORS errors:**
-- Backend has CORS enabled (flask-cors)
-- For dev: `open -n -a "Google Chrome" --args --disable-web-security`
+- **Stateless** - No database, no persistent state
+- **Simple** - Pure REST API
+- **Focused** - Only AI services, nothing else
+- **Portable** - Easy to integrate anywhere
 
-### ROS2 Issues
+## 🤝 Division of Work
 
-**ROS2 nodes can't connect:**
-1. Make sure main server is running
-2. Check API URL in ROS2 node
-3. Test API: `curl http://localhost:5001/api/state`
+**This repo (You):**
+- ✅ Gemini AI text generation
+- ✅ ElevenLabs voice synthesis
+- ✅ Roboflow image detection
 
----
+**Teammate's repo:**
+- Pathfinding (A* algorithm)
+- ROS integration
+- Robot simulation
+- Maze logic
+- Frontend UI
+- System orchestration
 
-##  Documentation
+## 🚨 Troubleshooting
 
-- **[QUICKSTART.md](QUICKSTART.md)** - Quick start guide
-- **[PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md)** - Complete technical documentation
-- **[SUMMARY.md](SUMMARY.md)** - What was done and why
-- **Terminal logs** - Real-time debugging info
-
----
-
-##  Deployment
-
-### Backend (Heroku)
-
+**Port already in use:**
 ```bash
-echo "web: python backend/main_server.py" > Procfile
-heroku create zeropanic-evacuation
-git push heroku main
+lsof -ti:5002 | xargs kill -9
 ```
 
-### Frontend (Firebase)
-
+**Missing dependencies:**
 ```bash
-cd frontend
-flutter build web
-firebase deploy
+pip install -r requirements.txt
 ```
 
----
-
-##  Performance
-
-- **Backend Update Rate**: 10 Hz (100ms per cycle)
-- **Frontend Refresh**: 5 Hz (200ms per request)
-- **API Response Time**: <50ms average
-- **A* Pathfinding**: <10ms for 8x8 grid
-- **Smooth Animations**: 60 FPS in Flutter
-
----
-
-## Future Enhancements
-
-### Short Term
-- [ ] Add more robots and humans
-- [ ] Larger grid sizes (16x16, 32x32)
-- [ ] Save/load maze configurations
-- [ ] Export evacuation reports
-
-### Medium Term
-- [ ] WebSocket for real-time updates
-- [ ] Multi-floor building support
-- [ ] Historical playback
-- [ ] Analytics dashboard
-
-### Long Term
-- [ ] Physical robot integration via ROS2
-- [ ] Camera feed integration
-- [ ] Machine learning for prediction
-- [ ] Cloud deployment with load balancing
-
----
-
-##  Contributing
-
-This is a hackathon project, but contributions are welcome!
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
----
-
-##  License
-
-MIT License - See [LICENSE](LICENSE) file for details
-
----
-
-##  Acknowledgments
-
-- **Google Gemini** - AI guidance generation
-- **ElevenLabs** - Voice synthesis
-- **Roboflow** - Computer vision API
-- **ROS2 Community** - Robot operating system
-- **Flutter Team** - Mobile framework
-- **KnightHacks 2025** - Hackathon organizers
-
----
-
-##  Team
-
-**Built for:** KnightHacks 2025
-
-**Technologies Used:**
-- Python (Flask, NumPy)
-- Flutter (Dart)
-- ROS2 Humble
-- Google Gemini AI
-- ElevenLabs Voice
-- Roboflow Vision
-
----
-
-##  Quick Commands Cheat Sheet
-
+**API not working:**
 ```bash
-# Start backend
-./START_DEMO.sh
+# Check health
+curl http://localhost:5002/health
 
-# Start Flutter app (in new terminal)
-./START_FLUTTER.sh
-
-# Test all endpoints
-./TEST_SYSTEM.sh
-
-# Health check
-curl http://localhost:5001/health
-
-# Get live state
-curl http://localhost:5001/api/flutter-update
-
-# Add obstacle
-curl -X POST http://localhost:5001/api/obstacle/add \
-  -H "Content-Type: application/json" -d '{"x":4,"y":4}'
-
-# Reset simulation
-curl -X POST http://localhost:5001/api/control/reset
-
-cd backend/ros2_nodes && python3 simulation_node.py
-
-# Monitor ROS2
-ros2 topic list
-ros2 topic echo /robot_1/pose
+# Check logs
+python3 services_api.py
 ```
+
+## 📞 Support
+
+- Full documentation: [SERVICES_API.md](SERVICES_API.md)
+- Test script: `python3 test_services.py`
+- Server logs show detailed error messages
 
 ---
 
-**Made with ❤️ for safer emergency evacuations**
-
-**Ready for KnightHacks 2025! **
+**Simple. Clean. Just the AI services.** 🎯
